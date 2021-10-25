@@ -1,10 +1,12 @@
 {
-  "name": "una",
+  "name": "una-wrapper",
   "version": "0.0.1",
   "description": "Universal Node API",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc --module commonjs",
     "dev": "tsc --watch",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +21,6 @@
   "homepage": "https://github.com/dolu89/una#readme",
   "devDependencies": {
     "@types/node": "^16.11.3",
-    "@types/request": "^2.48.7",
     "ts-standard": "^10.0.0",
     "typescript": "^4.4.3"
   },

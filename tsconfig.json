@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "rootDir": "src",
-        "outDir": "build",
+        "outDir": "dist",
         // "noEmitOnError": true,
         "strict": true,
         "strictNullChecks": true,
