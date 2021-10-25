@@ -2,7 +2,7 @@
 
 Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LNBits, more...
 
-🚧 Una is still in developpment.
+🚧 Una is still in development.
 
 ## Supported actions
  - [x] Create invoice
