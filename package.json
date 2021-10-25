@@ -7,6 +7,7 @@
     "build": "tsc --module commonjs",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build",
+    "lint": "ts-standard --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
