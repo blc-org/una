@@ -15,7 +15,7 @@
     "url": "git+https://github.com/dolu89/una.git"
   },
   "author": "dolu",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/dolu89/una/issues"
   },
