@@ -1,4 +1,5 @@
 import * as https from 'https'
+import { EHttpVerb } from '../http/e-http-verb'
 import { request } from '../http/http-client'
 import Invoice from '../interfaces/i-invoice'
 import ILndRest from '../interfaces/i-lnd-rest'
@@ -18,25 +19,13 @@ export default class LndRest implements IBackend {
       memo
     })
 
-    const options: https.RequestOptions = {
-      method: 'POST',
-      rejectUnauthorized: false,
-      headers: {
-        'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
-      }
-    }
+    const options = this.getRequestOptions(EHttpVerb.POST)
     const invoiceCreated = await request(this.lndRest.url + '/v1/invoices', options, data)
     return await this.getInvoice(base64ToHex(invoiceCreated.r_hash))
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
-    const options: https.RequestOptions = {
-      method: 'GET',
-      rejectUnauthorized: false,
-      headers: {
-        'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
-      }
-    }
+    const options = this.getRequestOptions(EHttpVerb.GET)
     const invoice: LndInvoice = await request(this.lndRest.url + '/v1/invoice/' + hash, options)
     return this.toInvoice(invoice)
   }
@@ -57,6 +46,16 @@ export default class LndRest implements IBackend {
       settleDate: invoice.settle_date === '0' ? null : this.toDate(invoice.settle_date),
       paymentHash: base64ToHex(invoice.r_hash),
       preImage: base64ToHex(invoice.r_preimage)
+    }
+  }
+
+  private getRequestOptions (method: EHttpVerb): https.RequestOptions {
+    return {
+      method: method,
+      rejectUnauthorized: false,
+      headers: {
+        'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
+      }
     }
   }
 }
