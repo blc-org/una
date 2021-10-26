@@ -1,10 +1,10 @@
 import * as https from 'https'
-import { EHttpVerb } from '../http/e-http-verb'
-import { request } from '../http/http-client'
-import Invoice from '../interfaces/i-invoice'
-import ILndRest from '../interfaces/i-lnd-rest'
-import IBackend from './i-backend'
-import { base64ToHex } from './tools'
+import { EHttpVerb } from '../http/e-http-verb.js'
+import { request } from '../http/http-client.js'
+import Invoice from '../interfaces/i-invoice.js'
+import ILndRest from '../interfaces/i-lnd-rest.js'
+import IBackend from './i-backend.js'
+import { base64ToHex } from './tools.js'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
@@ -20,13 +20,13 @@ export default class LndRest implements IBackend {
     })
 
     const options = this.getRequestOptions(EHttpVerb.POST)
-    const invoiceCreated = await request(this.lndRest.url + '/v1/invoices', options, data)
+    const invoiceCreated: ILndInvoice = await request(this.lndRest.url + '/v1/invoices', options, data)
     return await this.getInvoice(base64ToHex(invoiceCreated.r_hash))
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
     const options = this.getRequestOptions(EHttpVerb.GET)
-    const invoice: LndInvoice = await request(this.lndRest.url + '/v1/invoice/' + hash, options)
+    const invoice: ILndInvoice = await request(this.lndRest.url + '/v1/invoice/' + hash, options)
     return this.toInvoice(invoice)
   }
 
@@ -34,7 +34,7 @@ export default class LndRest implements IBackend {
     return new Date(Number(millisecond) * 1000)
   }
 
-  private toInvoice (invoice: LndInvoice): Invoice {
+  private toInvoice (invoice: ILndInvoice): Invoice {
     return {
       bolt11: invoice.payment_request,
       amount: Number(invoice.value),
@@ -60,7 +60,7 @@ export default class LndRest implements IBackend {
   }
 }
 
-interface LndInvoice {
+interface ILndInvoice {
   memo: string
   r_preimage: string
   r_hash: string
@@ -83,12 +83,12 @@ interface LndInvoice {
   amt_paid_msat: string
   state: string
   htlcs: any[]
-  features: { [key: string]: Feature }
+  features: { [key: string]: IFeature }
   is_keysend: boolean
   payment_addr: string
 }
 
-interface Feature {
+interface IFeature {
   name: string
   is_required: boolean
   is_known: boolean

@@ -13,7 +13,7 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
 ## Supported backends
  - [x] LND (REST)
  - [ ] c-lightning
- - [ ] Eclair
+ - [x] Eclair (REST)
  - [ ] LndHub
  - [ ] LNBits
  - Want another implementation? [Open an issue](https://github.com/Dolu89/una/issues/new)

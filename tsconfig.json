@@ -6,9 +6,11 @@
         "strict": true,
         "strictNullChecks": true,
         "lib": [
-            "DOM",
-            "ES2020"
+            "ES2020",
         ],
-        "module": "CommonJS"
+        "moduleResolution": "node",
+        "module": "ES2020",
+        "allowSyntheticDefaultImports": true,
+        "target": "ES2020"
     },
 }
