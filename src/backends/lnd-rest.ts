@@ -1,6 +1,6 @@
-import * as https from 'https'
+import https from 'https'
+import fetch, { RequestInit } from 'node-fetch'
 import { EHttpVerb } from '../http/e-http-verb.js'
-import { request } from '../http/http-client.js'
 import Invoice from '../interfaces/i-invoice.js'
 import ILndRest from '../interfaces/i-lnd-rest.js'
 import IBackend from './i-backend.js'
@@ -14,20 +14,21 @@ export default class LndRest implements IBackend {
   }
 
   public async createInvoice (amount: number, memo: string): Promise<Invoice> {
-    const data = JSON.stringify({
+    const body = {
       value_msat: amount * 1000,
       memo
-    })
-
-    const options = this.getRequestOptions(EHttpVerb.POST)
-    const invoiceCreated: ILndInvoice = await request(this.lndRest.url + '/v1/invoices', options, data)
-    return await this.getInvoice(base64ToHex(invoiceCreated.r_hash))
+    }
+    const options = this.getRequestOptions(EHttpVerb.POST, body)
+    const response = await fetch(this.lndRest.url + '/v1/invoices', options)
+    const responseData = await response.json() as ILndInvoice
+    return await this.getInvoice(base64ToHex(responseData.r_hash))
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
     const options = this.getRequestOptions(EHttpVerb.GET)
-    const invoice: ILndInvoice = await request(this.lndRest.url + '/v1/invoice/' + hash, options)
-    return this.toInvoice(invoice)
+    const response = await fetch(this.lndRest.url + '/v1/invoice/' + hash, options)
+    const responseData = await response.json() as ILndInvoice
+    return this.toInvoice(responseData)
   }
 
   private toDate (millisecond: string): Date {
@@ -49,13 +50,17 @@ export default class LndRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb): https.RequestOptions {
+  private getRequestOptions (method: EHttpVerb, body: unknown = null): RequestInit {
+    const agent = new https.Agent({
+      rejectUnauthorized: false
+    })
     return {
       method: method,
-      rejectUnauthorized: false,
+      agent,
       headers: {
         'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
-      }
+      },
+      body: body !== null ? JSON.stringify(body) : null
     }
   }
 }
