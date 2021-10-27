@@ -1,2 +1,2 @@
-import { Una } from './una'
+import { Una } from './una.js'
 export default Una
