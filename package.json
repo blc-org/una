@@ -2,16 +2,6 @@
   "name": "una-wrapper",
   "version": "0.0.2-beta",
   "description": "Universal Node API",
-  "type": "module",
-  "exports": "./dist/index.js",
-  "node": "^12.20.0 || >=14.13.1",
-  "scripts": {
-    "build": "tsc --module commonjs",
-    "dev": "tsc --watch",
-    "prepublishOnly": "npm run build",
-    "lint": "ts-standard --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dolu89/una.git"
@@ -22,6 +12,17 @@
     "url": "https://github.com/dolu89/una/issues"
   },
   "homepage": "https://github.com/dolu89/una#readme",
+  "node": "^12.20.0 || >=14.13.1",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "dev": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json --watch",
+    "prepublishOnly": "npm run build",
+    "lint": "ts-standard --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "devDependencies": {
     "@types/node": "^16.11.3",
     "ts-standard": "^10.0.0",
@@ -34,5 +35,8 @@
     "form-data-encoder": "^1.6.0",
     "formdata-node": "^4.3.1",
     "node-fetch": "^3.0.0"
-  }
+  },
+  "files": [
+    "dist/"
+  ]
 }

@@ -1,4 +1,4 @@
-import Invoice from '../interfaces/i-invoice'
+import { Invoice } from '../interfaces'
 
 export default interface IBackend {
   createInvoice: (amount: number, memo: string) => Promise<Invoice>

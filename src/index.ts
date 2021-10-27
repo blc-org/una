@@ -1,9 +1,6 @@
-import EclairRest from './backends/eclair-rest/eclair-rest.js'
-import LndRest from './backends/lnd-rest.js'
-import { EBackendType } from './enums/e-backend-type.js'
-import IEclairRest from './interfaces/i-eclair-rest.js'
-import Invoice from './interfaces/i-invoice.js'
-import ILndRest from './interfaces/i-lnd-rest.js'
+import { EclairRest, LndRest } from './backends'
+import { EBackendType } from './enums'
+import { IEclairRest, ILndRest, Invoice } from './interfaces'
 
 export default class Una {
   private readonly lndRest: LndRest | undefined
