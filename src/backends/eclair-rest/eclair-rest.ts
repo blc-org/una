@@ -3,7 +3,7 @@ import { FormData } from 'formdata-node'
 import { FormDataEncoder } from 'form-data-encoder'
 import { Readable } from 'stream'
 import { IBackend } from '..'
-import { IEclairRest, Invoice } from '../../interfaces'
+import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
 
@@ -14,14 +14,33 @@ export default class EclairRest implements IBackend {
     this.eclairRest = eclairRest
   }
 
-  public async createInvoice (amount: number, memo: string): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+    const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
+
     const form = new FormData()
-    form.append('description', memo)
-    form.append('amountMsat', String(amount * 1000))
+    form.append('amountMsat', String(amountMsat))
+
+    if (invoice.description !== undefined && invoice.descriptionHash === undefined) {
+      form.append('description', invoice.description)
+    } else if (invoice.descriptionHash !== undefined && invoice.description === undefined) {
+      form.append('descriptionHash', invoice.descriptionHash)
+    } else {
+      throw new Error('You must specify either description or descriptionHash, but not both')
+    }
+    if (invoice.expireIn !== undefined) {
+      form.append('expireIn', invoice.expireIn)
+    }
+    if (invoice.fallbackAddress !== undefined) {
+      form.append('fallbackAddress', invoice.fallbackAddress)
+    }
+    if (invoice.paymentPreimage !== undefined) {
+      form.append('paymentPreimage', invoice.paymentPreimage)
+    }
 
     const options = this.getRequestOptions(EHttpVerb.POST, form)
     const response = await fetch(`${this.eclairRest.url}/createinvoice`, options)
     const responseData = await response.json() as IInvoiceCreated
+
     return await this.getInvoice(responseData.paymentHash)
   }
 
@@ -31,6 +50,7 @@ export default class EclairRest implements IBackend {
     const options = this.getRequestOptions(EHttpVerb.POST, data)
     const response = await fetch(this.eclairRest.url + '/getreceivedinfo', options)
     const responseData = await response.json() as IInvoiceLookup
+
     return this.toInvoice(responseData)
   }
 
@@ -40,6 +60,7 @@ export default class EclairRest implements IBackend {
 
   private toInvoice (invoice: IInvoiceLookup): Invoice {
     const settled = invoice.status.type === 'received'
+
     return {
       bolt11: invoice.paymentRequest.serialized,
       amount: invoice.paymentRequest.amount / 1000,
@@ -56,6 +77,7 @@ export default class EclairRest implements IBackend {
 
   private getRequestOptions (method: EHttpVerb, form: FormData): RequestInit {
     const encoder = new FormDataEncoder(form)
+
     return {
       method: method,
       headers: {

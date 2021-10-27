@@ -2,7 +2,7 @@ import * as https from 'https'
 import fetch, { RequestInit } from 'node-fetch'
 import { IBackend } from '..'
 import { EHttpVerb } from '../../enums'
-import { ILndRest, Invoice } from '../../interfaces'
+import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
 import { base64ToHex } from '../tools'
 
 export default class LndRest implements IBackend {
@@ -12,14 +12,22 @@ export default class LndRest implements IBackend {
     this.lndRest = lndRest
   }
 
-  public async createInvoice (amount: number, memo: string): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+    const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
+
     const body = {
-      value_msat: amount * 1000,
-      memo
+      value_msat: amountMsat,
+      expiry: invoice.expireIn,
+      fallback_addr: invoice.fallbackAddress,
+      paymentPreimage: invoice.paymentPreimage,
+      memo: invoice.description,
+      description_hash: invoice.descriptionHash
     }
+
     const options = this.getRequestOptions(EHttpVerb.POST, body)
     const response = await fetch(this.lndRest.url + '/v1/invoices', options)
     const responseData = await response.json() as ILndInvoice
+
     return await this.getInvoice(base64ToHex(responseData.r_hash))
   }
 
@@ -27,6 +35,7 @@ export default class LndRest implements IBackend {
     const options = this.getRequestOptions(EHttpVerb.GET)
     const response = await fetch(this.lndRest.url + '/v1/invoice/' + hash, options)
     const responseData = await response.json() as ILndInvoice
+
     return this.toInvoice(responseData)
   }
 
@@ -53,6 +62,7 @@ export default class LndRest implements IBackend {
     const agent = new https.Agent({
       rejectUnauthorized: false
     })
+
     return {
       method: method,
       agent,

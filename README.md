@@ -21,9 +21,9 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
 ## How to use it
 ``` typescript
 // ES Module
-import { Una, EBackendType } from 'una-wrapper'
+import { Una, EBackendType, ICreateInvoice } from 'una-wrapper'
 // Common JS
-const { Una, EBackendType } = require('una-wrapper')
+const { Una, EBackendType, ICreateInvoice } = require('una-wrapper')
 
 // LND Rest
 const hexMacaroon = '0201036...311c811'
@@ -32,8 +32,21 @@ const unaClient = new Una(EBackendType.LndRest, { url: 'https://127.0.0.1:8080',
 // Eclair Rest
 const unaClient = new Una(EBackendType.EclairRest, { url: 'http://127.0.0.1:8080', user: '', password: 'eclairpw' })
 
-// Create an invoice of 15k satoshis with 'Hello' as memo
-const newInvoice = await unaWrapper.createInvoice(15000, 'Hello')
+/*
+  Create an invoice of 15k satoshis with 'Hello' as memo
+  Possible options are the following (from src/interface/i-create-invoice.ts)
+  {
+    amount: number
+    amountMsats: number
+    description: string
+    descriptionHash: string
+    expireIn?: number
+    fallbackAddress?: string
+    paymentPreimage?: string
+  }
+*/
+const invoiceCreate: ICreateInvoice = { amount: 15000, description: 'Hello' }
+const newInvoice = await unaWrapper.createInvoice(invoiceCreate)
 // Get invoice created previously
 const invoice = await unaWrapper.getInvoice(newInvoice.paymentHash)
 

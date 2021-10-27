@@ -1,6 +1,6 @@
 import { EclairRest, IBackend, LndRest } from './backends'
 import { EBackendType } from './enums'
-import { IEclairRest, ILndRest, Invoice } from './interfaces'
+import { ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
 
 export class Una {
   private readonly client: IBackend | undefined
@@ -23,22 +23,27 @@ export class Una {
 
   /**
        * Create an invoice
-       * @param amount amount in satoshis
-       * @param memo memo
-       * @returns Invoice
+       * @param invoice {ICreateInvoice} object
+       * @returns {Invoice} Invoice
        */
-  public async createInvoice (amount: number, memo: string): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
     if (this.client === undefined) {
       throw new Error('No backend defined')
     }
+    if (invoice.amount === undefined && invoice.amountMsats === undefined) {
+      throw new Error('amount or amountMsat must be defined')
+    }
+    if (invoice.description !== undefined && invoice.descriptionHash !== undefined) {
+      throw new Error('You must specify either description or descriptionHash, but not both')
+    }
 
-    return await this.client.createInvoice(amount, memo)
+    return await this.client.createInvoice(invoice)
   }
 
   /**
        * Get an invoice previously created
        * @param hash hex encoded payment hash
-       * @returns Invoice
+       * @returns {Invoice} Invoice
        */
   public async getInvoice (hash: string): Promise<Invoice> {
     if (this.client === undefined) {
@@ -57,6 +62,7 @@ export class Una {
       const info = connectionInformation as IEclairRest
       return info.url !== undefined && info.user !== undefined && info.password !== undefined
     }
+
     return false
   }
 }

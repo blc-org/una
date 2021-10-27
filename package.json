@@ -1,6 +1,6 @@
 {
   "name": "una-wrapper",
-  "version": "0.0.3-beta",
+  "version": "0.0.5-beta",
   "description": "Universal Node API",
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs",
