@@ -1,13 +1,11 @@
-import { EHttpVerb } from '../../http/e-http-verb.js'
 import fetch, { RequestInit } from 'node-fetch'
 import { FormData } from 'formdata-node'
-import IEclairRest from '../../interfaces/i-eclair-rest.js'
-import Invoice from '../../interfaces/i-invoice.js'
-import IBackend from '../i-backend.js'
 import { FormDataEncoder } from 'form-data-encoder'
 import { Readable } from 'stream'
-import { IInvoiceLookup } from './i-invoice-lookup.js'
-import { IInvoiceCreated } from './i-invoice-created.js'
+import { IBackend } from '..'
+import { IEclairRest, Invoice } from '../../interfaces'
+import { EHttpVerb } from '../../enums'
+import { IInvoiceCreated, IInvoiceLookup } from '.'
 
 export default class EclairRest implements IBackend {
   private readonly eclairRest: IEclairRest
@@ -22,7 +20,7 @@ export default class EclairRest implements IBackend {
     form.append('amountMsat', String(amount * 1000))
 
     const options = this.getRequestOptions(EHttpVerb.POST, form)
-    const response = await fetch(this.eclairRest.url + '/createinvoice', options)
+    const response = await fetch(`${this.eclairRest.url}/createinvoice`, options)
     const responseData = await response.json() as IInvoiceCreated
     return await this.getInvoice(responseData.paymentHash)
   }

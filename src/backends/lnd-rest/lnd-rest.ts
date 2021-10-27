@@ -1,10 +1,9 @@
 import https from 'https'
 import fetch, { RequestInit } from 'node-fetch'
-import { EHttpVerb } from '../http/e-http-verb.js'
-import Invoice from '../interfaces/i-invoice.js'
-import ILndRest from '../interfaces/i-lnd-rest.js'
-import IBackend from './i-backend.js'
-import { base64ToHex } from './tools.js'
+import { IBackend } from '..'
+import { EHttpVerb } from '../../enums'
+import { ILndRest, Invoice } from '../../interfaces'
+import { base64ToHex } from '../tools'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest

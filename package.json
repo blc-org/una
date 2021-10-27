@@ -1,13 +1,10 @@
 {
   "name": "una-wrapper",
-  "version": "0.0.2-beta",
+  "version": "0.0.3-beta",
   "description": "Universal Node API",
-  "type": "module",
-  "exports": "./dist/index.js",
-  "node": "^12.20.0 || >=14.13.1",
   "scripts": {
-    "build": "tsc --module commonjs",
-    "dev": "tsc --watch",
+    "build": "tsup src/index.ts --format esm,cjs",
+    "dev": "tsup src/index.ts --format esm,cjs --watch",
     "prepublishOnly": "npm run build",
     "lint": "ts-standard --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,9 +19,15 @@
     "url": "https://github.com/dolu89/una/issues"
   },
   "homepage": "https://github.com/dolu89/una#readme",
+  "node": "^12.20.0 || >=14.13.1",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "type": "module",
   "devDependencies": {
     "@types/node": "^16.11.3",
+    "@types/node-fetch": "2.5.12",
     "ts-standard": "^10.0.0",
+    "tsup": "^5.5.0",
     "typescript": "^4.4.3"
   },
   "ts-standard": {
@@ -33,6 +36,10 @@
   "dependencies": {
     "form-data-encoder": "^1.6.0",
     "formdata-node": "^4.3.1",
-    "node-fetch": "^3.0.0"
-  }
+    "node-fetch": "2.6.2"
+  },
+  "files": [
+    "dist/"
+  ],
+  "types": "./dist/index.d.ts"
 }
