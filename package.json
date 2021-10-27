@@ -1,6 +1,6 @@
 {
   "name": "una-wrapper-test",
-  "version": "0.0.3-beta",
+  "version": "0.0.4-beta",
   "description": "Universal Node API",
   "repository": {
     "type": "git",
@@ -19,13 +19,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "dev": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json --watch",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run tsup",
     "lint": "ts-standard --fix",
+    "tsup": "tsup src/index.ts --format esm",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "@types/node": "^16.11.3",
     "ts-standard": "^10.0.0",
+    "tsup": "^5.5.0",
     "typescript": "^4.4.3"
   },
   "ts-standard": {
