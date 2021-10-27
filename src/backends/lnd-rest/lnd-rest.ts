@@ -1,4 +1,4 @@
-import https from 'https'
+import * as https from 'https'
 import fetch, { RequestInit } from 'node-fetch'
 import { IBackend } from '..'
 import { EHttpVerb } from '../../enums'
@@ -59,7 +59,7 @@ export default class LndRest implements IBackend {
       headers: {
         'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
       },
-      body: body !== null ? JSON.stringify(body) : null
+      body: body !== null ? JSON.stringify(body) : undefined
     }
   }
 }
