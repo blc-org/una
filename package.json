@@ -1,6 +1,6 @@
 {
   "name": "una-wrapper-test",
-  "version": "0.0.10-beta",
+  "version": "0.0.11-beta",
   "description": "Universal Node API",
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs",
@@ -20,8 +20,8 @@
   },
   "homepage": "https://github.com/dolu89/una#readme",
   "node": "^12.20.0 || >=14.13.1",
-  "main": "./dist/index.js",
-  "module": "./dist/esm/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "type": "module",
   "devDependencies": {
     "@types/node": "^16.11.3",

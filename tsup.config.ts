@@ -5,6 +5,5 @@ export const tsup: Options = {
   dts: true,
   sourcemap: true,
   clean: true,
-  entryPoints: ['src/index.ts'],
-  legacyOutput: true
+  entryPoints: ['src/index.ts']
 }
