@@ -1,2 +1,3 @@
 import LndRest from './lnd-rest.js'
-export { LndRest }
+import { IInvoice } from './i-invoice.js'
+export { LndRest, IInvoice }
