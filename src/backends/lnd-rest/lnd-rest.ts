@@ -4,6 +4,7 @@ import { base64ToHex, IBackend, watchInvoices } from '..'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
 import { EventEmitter } from 'events'
+import { IInvoice } from '.'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
@@ -30,7 +31,7 @@ export default class LndRest implements IBackend {
 
     const options = this.getRequestOptions(EHttpVerb.POST, body)
     const response = await fetch(this.lndRest.url + '/v1/invoices', options)
-    const responseData = await response.json() as ILndInvoice
+    const responseData = await response.json() as IInvoice
 
     return await this.getInvoice(base64ToHex(responseData.r_hash))
   }
@@ -38,7 +39,7 @@ export default class LndRest implements IBackend {
   public async getInvoice (hash: string): Promise<Invoice> {
     const options = this.getRequestOptions(EHttpVerb.GET)
     const response = await fetch(this.lndRest.url + '/v1/invoice/' + hash, options)
-    const responseData = await response.json() as ILndInvoice
+    const responseData = await response.json() as IInvoice
 
     return this.toInvoice(responseData)
   }
@@ -54,7 +55,7 @@ export default class LndRest implements IBackend {
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.GET)
     const results = await fetch(this.lndRest.url + '/v1/invoices?pending_only=true', options)
-    const initalInvoices = await results.json() as { invoices: ILndInvoice[] }
+    const initalInvoices = await results.json() as { invoices: IInvoice[] }
     return initalInvoices.invoices.map(i => this.toInvoice(i))
   }
 
@@ -62,7 +63,7 @@ export default class LndRest implements IBackend {
     return new Date(Number(millisecond) * 1000)
   }
 
-  private toInvoice (invoice: ILndInvoice): Invoice {
+  private toInvoice (invoice: IInvoice): Invoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     if (invoice.state === 'OPEN') {
       status = EInvoiceStatus.Pending
@@ -103,38 +104,4 @@ export default class LndRest implements IBackend {
       body: body !== null ? JSON.stringify(body) : undefined
     }
   }
-}
-
-interface ILndInvoice {
-  memo: string
-  r_preimage: string
-  r_hash: string
-  value: string
-  value_msat: string
-  settled: boolean
-  creation_date: string
-  settle_date: string
-  payment_request: string
-  description_hash: null
-  expiry: string
-  fallback_addr: string
-  cltv_expiry: string
-  route_hints: any[]
-  private: boolean
-  add_index: string
-  settle_index: string
-  amt_paid: string
-  amt_paid_sat: string
-  amt_paid_msat: string
-  state: string
-  htlcs: any[]
-  features: { [key: string]: IFeature }
-  is_keysend: boolean
-  payment_addr: string
-}
-
-interface IFeature {
-  name: string
-  is_required: boolean
-  is_known: boolean
 }
