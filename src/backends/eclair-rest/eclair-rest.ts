@@ -4,14 +4,19 @@ import { FormDataEncoder } from 'form-data-encoder'
 import { Readable } from 'stream'
 import { IBackend } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
-import { EHttpVerb } from '../../enums'
+import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
+import { EventEmitter } from 'events'
 
 export default class EclairRest implements IBackend {
   private readonly eclairRest: IEclairRest
+  private readonly invoiceEmitter: EventEmitter
+  private readonly invoicesToWatch: Invoice[]
 
   constructor (eclairRest: IEclairRest) {
     this.eclairRest = eclairRest
+    this.invoicesToWatch = []
+    this.invoiceEmitter = new EventEmitter()
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -54,12 +59,56 @@ export default class EclairRest implements IBackend {
     return this.toInvoice(responseData)
   }
 
+  public watchInvoices (): EventEmitter {
+    return this.invoiceEmitter
+  }
+
+  public startWatchingInvoices (): void {
+    setInterval(() => {
+      this.getPendingInvoices().then(pendingInvoices => {
+        for (const pendingInvoice of pendingInvoices) {
+          if (this.invoicesToWatch.find(i => i.paymentHash === pendingInvoice.paymentHash) === undefined) {
+            this.invoicesToWatch.push(pendingInvoice)
+          }
+        }
+
+        for (const invoiceToWatch of this.invoicesToWatch) {
+          this.getInvoice(invoiceToWatch.paymentHash).then(invoice => {
+            if (invoice.status !== invoiceToWatch.status) {
+              this.invoiceEmitter.emit('invoice-updated', invoice)
+              if (invoice.status === EInvoiceStatus.Cancelled || invoice.status === EInvoiceStatus.Settled) {
+                const indexToRemove = this.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
+                this.invoicesToWatch.splice(indexToRemove)
+              }
+            }
+          }).catch(err => console.error('Unable to fetch invoice', err))
+        }
+      }).catch(err => console.error('Unable to fetch pending invoices', err))
+    }, 5000)
+  }
+
+  private async getPendingInvoices (): Promise<Invoice[]> {
+    const options = this.getRequestOptions(EHttpVerb.POST, new FormData())
+    const results = await fetch(this.eclairRest.url + '/listpendinginvoices', options)
+    const initalInvoices = await results.json() as IInvoiceCreated[]
+    return initalInvoices.map(i => this.toInvoice2(i))
+  }
+
   private toDate (millisecond: string): Date {
     return new Date(Number(millisecond))
   }
 
   private toInvoice (invoice: IInvoiceLookup): Invoice {
-    const settled = invoice.status.type === 'received'
+    let status: EInvoiceStatus = EInvoiceStatus.Pending
+    let settled = false
+    if (invoice.status.type === 'pending') {
+      status = EInvoiceStatus.Pending
+    } else if (invoice.status.type === 'received') {
+      status = EInvoiceStatus.Settled
+      settled = invoice.status.type === 'received'
+    } else if (invoice.status.type === 'expired') {
+      status = EInvoiceStatus.Cancelled
+    }
 
     return {
       bolt11: invoice.paymentRequest.serialized,
@@ -71,7 +120,23 @@ export default class EclairRest implements IBackend {
       settled,
       settleDate: settled ? this.toDate(invoice.status.receivedAt.toString()) : null,
       paymentHash: invoice.paymentRequest.paymentHash,
-      preImage: invoice.paymentPreimage
+      preImage: invoice.paymentPreimage,
+      status
+    }
+  }
+
+  private toInvoice2 (invoice: IInvoiceCreated): Invoice {
+    return {
+      bolt11: invoice.serialized,
+      amount: invoice.amount / 1000,
+      amountMsat: invoice.amount,
+      creationDate: this.toDate(invoice.timestamp.toString()),
+      expiry: Number(invoice.expiry),
+      memo: invoice.description,
+      settled: false,
+      settleDate: null,
+      paymentHash: invoice.paymentHash,
+      status: EInvoiceStatus.Pending
     }
   }
 

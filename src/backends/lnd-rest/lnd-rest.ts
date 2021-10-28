@@ -1,15 +1,20 @@
 import * as https from 'https'
 import fetch, { RequestInit } from 'node-fetch'
 import { IBackend } from '..'
-import { EHttpVerb } from '../../enums'
+import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
 import { base64ToHex } from '../tools'
+import { EventEmitter } from 'events'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
+  private readonly invoiceEmitter: EventEmitter
+  private readonly invoicesToWatch: Invoice[]
 
   constructor (lndRest: ILndRest) {
     this.lndRest = lndRest
+    this.invoicesToWatch = []
+    this.invoiceEmitter = new EventEmitter()
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -39,11 +44,57 @@ export default class LndRest implements IBackend {
     return this.toInvoice(responseData)
   }
 
+  public watchInvoices (): EventEmitter {
+    return this.invoiceEmitter
+  }
+
+  public startWatchingInvoices (): void {
+    setInterval(() => {
+      this.getPendingInvoices().then(pendingInvoices => {
+        for (const pendingInvoice of pendingInvoices) {
+          if (this.invoicesToWatch.find(i => i.paymentHash === pendingInvoice.paymentHash) === undefined) {
+            this.invoicesToWatch.push(pendingInvoice)
+          }
+        }
+
+        for (const invoiceToWatch of this.invoicesToWatch) {
+          this.getInvoice(invoiceToWatch.paymentHash).then(invoice => {
+            if (invoice.status !== invoiceToWatch.status) {
+              this.invoiceEmitter.emit('invoice-updated', invoice)
+              if (invoice.status === EInvoiceStatus.Cancelled || invoice.status === EInvoiceStatus.Settled) {
+                const indexToRemove = this.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
+                this.invoicesToWatch.splice(indexToRemove)
+              }
+            }
+          }).catch(err => console.error('Unable to fetch invoice', err))
+        }
+      }).catch(err => console.error('Unable to fetch pending invoices', err))
+    }, 5000)
+  }
+
+  private async getPendingInvoices (): Promise<Invoice[]> {
+    const options = this.getRequestOptions(EHttpVerb.GET)
+    const results = await fetch(this.lndRest.url + '/v1/invoices?pending_only=true', options)
+    const initalInvoices = await results.json() as { invoices: ILndInvoice[] }
+    return initalInvoices.invoices.map(i => this.toInvoice(i))
+  }
+
   private toDate (millisecond: string): Date {
     return new Date(Number(millisecond) * 1000)
   }
 
   private toInvoice (invoice: ILndInvoice): Invoice {
+    let status: EInvoiceStatus = EInvoiceStatus.Pending
+    if (invoice.state === 'OPEN') {
+      status = EInvoiceStatus.Pending
+    } else if (invoice.state === 'SETTLED') {
+      status = EInvoiceStatus.Settled
+    } else if (invoice.state === 'CANCELED') {
+      status = EInvoiceStatus.Cancelled
+    } else if (invoice.state === 'ACCEPTED') {
+      status = EInvoiceStatus.Accepted
+    }
+
     return {
       bolt11: invoice.payment_request,
       amount: Number(invoice.value),
@@ -54,7 +105,8 @@ export default class LndRest implements IBackend {
       settled: invoice.settled,
       settleDate: invoice.settle_date === '0' ? null : this.toDate(invoice.settle_date),
       paymentHash: base64ToHex(invoice.r_hash),
-      preImage: base64ToHex(invoice.r_preimage)
+      preImage: base64ToHex(invoice.r_preimage),
+      status
     }
   }
 

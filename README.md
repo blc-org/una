@@ -21,9 +21,9 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
 ## How to use it
 ``` typescript
 // ES Module
-import { Una, EBackendType, ICreateInvoice } from 'una-wrapper'
+import { Una, EBackendType, ICreateInvoice, Invoice } from 'una-wrapper'
 // Common JS
-const { Una, EBackendType, ICreateInvoice } = require('una-wrapper')
+const { Una, EBackendType, ICreateInvoice, Invoice } = require('una-wrapper')
 
 // LND Rest
 const hexMacaroon = '0201036...311c811'
@@ -64,4 +64,9 @@ const invoice = await unaWrapper.getInvoice(newInvoice.paymentHash)
   preImage: '8a1ae80c77...fbfd1b1dd7'
 }
 */
+
+// Watch invoices changes
+unaWrapper.watchInvoices().on('invoice-updated', (invoice: Invoice) => {
+  console.log(invoice)
+})
 ```

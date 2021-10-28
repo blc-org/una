@@ -1,3 +1,4 @@
+import * as EventEmitter from 'events'
 import { EclairRest, IBackend, LndRest } from './backends'
 import { EBackendType } from './enums'
 import { ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
@@ -19,6 +20,8 @@ export class Una {
     } else {
       throw new Error('Backend not supported.')
     }
+
+    this.client.startWatchingInvoices()
   }
 
   /**
@@ -51,6 +54,14 @@ export class Una {
     }
 
     return await this.client.getInvoice(hash)
+  }
+
+  public watchInvoices (): EventEmitter {
+    if (this.client === undefined) {
+      throw new Error('No backend defined')
+    }
+
+    return this.client.watchInvoices()
   }
 
   private verifyConnectionInformation (connectionInformation: ConnectionInformation, backend: EBackendType): boolean {
