@@ -1,7 +1,4 @@
 import fetch, { RequestInit } from 'node-fetch'
-import { FormData } from 'formdata-node'
-import { FormDataEncoder } from 'form-data-encoder'
-import { Readable } from 'stream'
 import { IBackend, watchInvoices } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
@@ -22,27 +19,28 @@ export default class EclairRest implements IBackend {
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
-    const form = new FormData()
-    form.append('amountMsat', String(amountMsat))
+    const body: any = {
+      amountMsat: amountMsat
+    }
 
     if (invoice.description !== undefined && invoice.descriptionHash === undefined) {
-      form.append('description', invoice.description)
+      body.description = invoice.description
     } else if (invoice.descriptionHash !== undefined && invoice.description === undefined) {
-      form.append('descriptionHash', invoice.descriptionHash)
+      body.descriptionHash = invoice.descriptionHash
     } else {
       throw new Error('You must specify either description or descriptionHash, but not both')
     }
     if (invoice.expireIn !== undefined) {
-      form.append('expireIn', invoice.expireIn)
+      body.expireIn = invoice.expireIn
     }
     if (invoice.fallbackAddress !== undefined) {
-      form.append('fallbackAddress', invoice.fallbackAddress)
+      body.fallbackAddress = invoice.fallbackAddress
     }
     if (invoice.paymentPreimage !== undefined) {
-      form.append('paymentPreimage', invoice.paymentPreimage)
+      body.paymentPreimage = invoice.paymentPreimage
     }
 
-    const options = this.getRequestOptions(EHttpVerb.POST, form)
+    const options = this.getRequestOptions(EHttpVerb.POST, body)
     const response = await fetch(`${this.eclairRest.url}/createinvoice`, options)
     const responseData = await response.json() as IInvoiceCreated
 
@@ -50,9 +48,11 @@ export default class EclairRest implements IBackend {
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
-    const data = new FormData()
-    data.append('paymentHash', hash)
-    const options = this.getRequestOptions(EHttpVerb.POST, data)
+    const body = {
+      paymentHash: hash
+    }
+
+    const options = this.getRequestOptions(EHttpVerb.POST, body)
     const response = await fetch(this.eclairRest.url + '/getreceivedinfo', options)
     const responseData = await response.json() as IInvoiceLookup
 
@@ -68,7 +68,7 @@ export default class EclairRest implements IBackend {
   }
 
   public async getPendingInvoices (): Promise<Invoice[]> {
-    const options = this.getRequestOptions(EHttpVerb.POST, new FormData())
+    const options = this.getRequestOptions(EHttpVerb.POST)
     const results = await fetch(this.eclairRest.url + '/listpendinginvoices', options)
     const initalInvoices = await results.json() as IInvoiceCreated[]
     return initalInvoices.map(i => this.toInvoice2(i))
@@ -120,16 +120,16 @@ export default class EclairRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb, form: FormData): RequestInit {
-    const encoder = new FormDataEncoder(form)
+  private getRequestOptions (method: EHttpVerb, body: any = null): RequestInit {
+    const formDataString = new URLSearchParams(body).toString()
 
     return {
       method: method,
       headers: {
-        ...encoder.headers,
+        'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: 'Basic ' + Buffer.from(`${this.eclairRest.user}:${this.eclairRest.password}`).toString('base64')
       },
-      body: Readable.from(encoder)
+      body: formDataString
     }
   }
 }
