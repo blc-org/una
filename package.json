@@ -36,7 +36,7 @@
   "dependencies": {
     "form-data-encoder": "^1.6.0",
     "formdata-node": "^4.3.1",
-    "node-fetch": "2.6.2"
+    "node-fetch": "2.6.5"
   },
   "files": [
     "dist/"
