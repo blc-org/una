@@ -1,15 +1,14 @@
 import * as https from 'https'
 import fetch, { RequestInit } from 'node-fetch'
-import { IBackend } from '..'
+import { base64ToHex, IBackend, watchInvoices } from '..'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
-import { base64ToHex } from '../tools'
 import { EventEmitter } from 'events'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
-  private readonly invoiceEmitter: EventEmitter
-  private readonly invoicesToWatch: Invoice[]
+  public readonly invoiceEmitter: EventEmitter
+  public readonly invoicesToWatch: Invoice[]
 
   constructor (lndRest: ILndRest) {
     this.lndRest = lndRest
@@ -49,30 +48,10 @@ export default class LndRest implements IBackend {
   }
 
   public startWatchingInvoices (): void {
-    setInterval(() => {
-      this.getPendingInvoices().then(pendingInvoices => {
-        for (const pendingInvoice of pendingInvoices) {
-          if (this.invoicesToWatch.find(i => i.paymentHash === pendingInvoice.paymentHash) === undefined) {
-            this.invoicesToWatch.push(pendingInvoice)
-          }
-        }
-
-        for (const invoiceToWatch of this.invoicesToWatch) {
-          this.getInvoice(invoiceToWatch.paymentHash).then(invoice => {
-            if (invoice.status !== invoiceToWatch.status) {
-              this.invoiceEmitter.emit('invoice-updated', invoice)
-              if (invoice.status === EInvoiceStatus.Cancelled || invoice.status === EInvoiceStatus.Settled) {
-                const indexToRemove = this.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
-                this.invoicesToWatch.splice(indexToRemove)
-              }
-            }
-          }).catch(err => console.error('Unable to fetch invoice', err))
-        }
-      }).catch(err => console.error('Unable to fetch pending invoices', err))
-    }, 5000)
+    watchInvoices(this)
   }
 
-  private async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.GET)
     const results = await fetch(this.lndRest.url + '/v1/invoices?pending_only=true', options)
     const initalInvoices = await results.json() as { invoices: ILndInvoice[] }

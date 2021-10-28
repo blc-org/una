@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch'
 import { FormData } from 'formdata-node'
 import { FormDataEncoder } from 'form-data-encoder'
 import { Readable } from 'stream'
-import { IBackend } from '..'
+import { IBackend, watchInvoices } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
@@ -10,8 +10,8 @@ import { EventEmitter } from 'events'
 
 export default class EclairRest implements IBackend {
   private readonly eclairRest: IEclairRest
-  private readonly invoiceEmitter: EventEmitter
-  private readonly invoicesToWatch: Invoice[]
+  public readonly invoiceEmitter: EventEmitter
+  public readonly invoicesToWatch: Invoice[]
 
   constructor (eclairRest: IEclairRest) {
     this.eclairRest = eclairRest
@@ -64,30 +64,10 @@ export default class EclairRest implements IBackend {
   }
 
   public startWatchingInvoices (): void {
-    setInterval(() => {
-      this.getPendingInvoices().then(pendingInvoices => {
-        for (const pendingInvoice of pendingInvoices) {
-          if (this.invoicesToWatch.find(i => i.paymentHash === pendingInvoice.paymentHash) === undefined) {
-            this.invoicesToWatch.push(pendingInvoice)
-          }
-        }
-
-        for (const invoiceToWatch of this.invoicesToWatch) {
-          this.getInvoice(invoiceToWatch.paymentHash).then(invoice => {
-            if (invoice.status !== invoiceToWatch.status) {
-              this.invoiceEmitter.emit('invoice-updated', invoice)
-              if (invoice.status === EInvoiceStatus.Cancelled || invoice.status === EInvoiceStatus.Settled) {
-                const indexToRemove = this.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
-                this.invoicesToWatch.splice(indexToRemove)
-              }
-            }
-          }).catch(err => console.error('Unable to fetch invoice', err))
-        }
-      }).catch(err => console.error('Unable to fetch pending invoices', err))
-    }, 5000)
+    watchInvoices(this)
   }
 
-  private async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.POST, new FormData())
     const results = await fetch(this.eclairRest.url + '/listpendinginvoices', options)
     const initalInvoices = await results.json() as IInvoiceCreated[]
