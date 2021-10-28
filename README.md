@@ -27,10 +27,10 @@ const { Una, EBackendType, ICreateInvoice } = require('una-wrapper')
 
 // LND Rest
 const hexMacaroon = '0201036...311c811'
-const unaClient = new Una(EBackendType.LndRest, { url: 'https://127.0.0.1:8080', hexMacaroon })
+const unaWrapper = new Una(EBackendType.LndRest, { url: 'https://127.0.0.1:8080', hexMacaroon })
 
 // Eclair Rest
-const unaClient = new Una(EBackendType.EclairRest, { url: 'http://127.0.0.1:8080', user: '', password: 'eclairpw' })
+const unaWrapper = new Una(EBackendType.EclairRest, { url: 'http://127.0.0.1:8080', user: '', password: 'eclairpw' })
 
 /*
   Create an invoice of 15k satoshis with 'Hello' as memo
