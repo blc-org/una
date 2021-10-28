@@ -1,10 +1,10 @@
 import * as https from 'https'
-import fetch, { RequestInit } from 'node-fetch'
+import { request } from '../../http/http-client.js'
 import { base64ToHex, IBackend, watchInvoices } from '..'
-import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
-import { EventEmitter } from 'events'
+import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoice } from '.'
+import { EventEmitter } from 'events'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
@@ -20,7 +20,7 @@ export default class LndRest implements IBackend {
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
-    const body = {
+    const data = {
       value_msat: amountMsat,
       expiry: invoice.expireIn,
       fallback_addr: invoice.fallbackAddress,
@@ -29,19 +29,19 @@ export default class LndRest implements IBackend {
       description_hash: invoice.descriptionHash
     }
 
-    const options = this.getRequestOptions(EHttpVerb.POST, body)
-    const response = await fetch(this.lndRest.url + '/v1/invoices', options)
-    const responseData = await response.json() as IInvoice
+    const body = this.prepareBody(data)
+    const options = this.getRequestOptions(EHttpVerb.POST)
 
-    return await this.getInvoice(base64ToHex(responseData.r_hash))
+    const response = await request(this.lndRest.url + '/v1/invoices', options, body) as IInvoice
+
+    return await this.getInvoice(base64ToHex(response.r_hash))
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
     const options = this.getRequestOptions(EHttpVerb.GET)
-    const response = await fetch(this.lndRest.url + '/v1/invoice/' + hash, options)
-    const responseData = await response.json() as IInvoice
+    const response = await request(this.lndRest.url + '/v1/invoice/' + hash, options) as IInvoice
 
-    return this.toInvoice(responseData)
+    return this.toInvoice(response)
   }
 
   public watchInvoices (): EventEmitter {
@@ -54,7 +54,7 @@ export default class LndRest implements IBackend {
 
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.GET)
-    const results = await fetch(this.lndRest.url + '/v1/invoices?pending_only=true', options)
+    const results = await request(this.lndRest.url + '/v1/invoices?pending_only=true', options)
     const initalInvoices = await results.json() as { invoices: IInvoice[] }
     return initalInvoices.invoices.map(i => this.toInvoice(i))
   }
@@ -90,7 +90,7 @@ export default class LndRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb, body: unknown = null): RequestInit {
+  private getRequestOptions (method: EHttpVerb): https.RequestOptions {
     const agent = new https.Agent({
       rejectUnauthorized: false
     })
@@ -100,8 +100,11 @@ export default class LndRest implements IBackend {
       agent,
       headers: {
         'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
-      },
-      body: body !== null ? JSON.stringify(body) : undefined
+      }
     }
+  }
+
+  private prepareBody (data: unknown): string | undefined {
+    return data !== null ? JSON.stringify(data) : undefined
   }
 }

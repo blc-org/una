@@ -1,4 +1,5 @@
-import fetch, { RequestInit } from 'node-fetch'
+import * as https from 'https'
+import { request } from '../../http/http-client.js'
 import { IBackend, watchInvoices } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
@@ -19,44 +20,44 @@ export default class EclairRest implements IBackend {
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
-    const body: any = {
+    const data: any = {
       amountMsat: amountMsat
     }
 
     if (invoice.description !== undefined && invoice.descriptionHash === undefined) {
-      body.description = invoice.description
+      data.description = invoice.description
     } else if (invoice.descriptionHash !== undefined && invoice.description === undefined) {
-      body.descriptionHash = invoice.descriptionHash
+      data.descriptionHash = invoice.descriptionHash
     } else {
       throw new Error('You must specify either description or descriptionHash, but not both')
     }
     if (invoice.expireIn !== undefined) {
-      body.expireIn = invoice.expireIn
+      data.expireIn = invoice.expireIn
     }
     if (invoice.fallbackAddress !== undefined) {
-      body.fallbackAddress = invoice.fallbackAddress
+      data.fallbackAddress = invoice.fallbackAddress
     }
     if (invoice.paymentPreimage !== undefined) {
-      body.paymentPreimage = invoice.paymentPreimage
+      data.paymentPreimage = invoice.paymentPreimage
     }
 
-    const options = this.getRequestOptions(EHttpVerb.POST, body)
-    const response = await fetch(`${this.eclairRest.url}/createinvoice`, options)
-    const responseData = await response.json() as IInvoiceCreated
+    const body = this.prepareBody(data)
+    const options = this.getRequestOptions(EHttpVerb.POST)
+    const response = await request(this.eclairRest.url + '/createinvoice', options, body) as IInvoiceCreated
 
-    return await this.getInvoice(responseData.paymentHash)
+    return await this.getInvoice(response.paymentHash)
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
-    const body = {
+    const data = {
       paymentHash: hash
     }
 
-    const options = this.getRequestOptions(EHttpVerb.POST, body)
-    const response = await fetch(this.eclairRest.url + '/getreceivedinfo', options)
-    const responseData = await response.json() as IInvoiceLookup
+    const body = this.prepareBody(data)
+    const options = this.getRequestOptions(EHttpVerb.POST)
+    const response = await request(this.eclairRest.url + '/getreceivedinfo', options, body) as IInvoiceLookup
 
-    return this.toInvoice(responseData)
+    return this.toInvoice(response)
   }
 
   public watchInvoices (): EventEmitter {
@@ -69,7 +70,7 @@ export default class EclairRest implements IBackend {
 
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.POST)
-    const results = await fetch(this.eclairRest.url + '/listpendinginvoices', options)
+    const results = await request(this.eclairRest.url + '/listpendinginvoices', options)
     const initalInvoices = await results.json() as IInvoiceCreated[]
     return initalInvoices.map(i => this.toInvoice2(i))
   }
@@ -120,16 +121,17 @@ export default class EclairRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb, body: any = null): RequestInit {
-    const formDataString = new URLSearchParams(body).toString()
-
+  private getRequestOptions (method: EHttpVerb, body: any = null): https.RequestOptions {
     return {
       method: method,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: 'Basic ' + Buffer.from(`${this.eclairRest.user}:${this.eclairRest.password}`).toString('base64')
-      },
-      body: formDataString
+      }
     }
+  }
+
+  private prepareBody (data: any): string {
+    return new URLSearchParams(data).toString()
   }
 }
