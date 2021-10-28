@@ -7,7 +7,7 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
 ## Supported actions
  - [x] Create invoice
  - [x] Get invoice
- - [ ] Invoice events
+ - [x] Invoice events
  - More to come
 
 ## Supported backends
