@@ -25,7 +25,6 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^16.11.3",
-    "@types/node-fetch": "2.5.12",
     "ts-standard": "^10.0.0",
     "tsup": "^5.5.0",
     "typescript": "^4.4.3"
@@ -33,11 +32,7 @@
   "ts-standard": {
     "project": "./tsconfig.json"
   },
-  "dependencies": {
-    "form-data-encoder": "^1.6.0",
-    "formdata-node": "^4.3.1",
-    "node-fetch": "2.6.2"
-  },
+  "dependencies": {},
   "files": [
     "dist/"
   ],
