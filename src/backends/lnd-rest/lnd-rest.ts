@@ -1,10 +1,10 @@
 import * as https from 'https'
-import { request } from '../../http/http-client.js'
 import { base64ToHex, IBackend, watchInvoices } from '..'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoice } from '.'
 import { EventEmitter } from 'events'
+import { request } from '../../http'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest

@@ -15,9 +15,9 @@ export const request = async (url: string, options: https.RequestOptions, data: 
       })
 
       res.on('end', () => {
-        const parsedBody = JSON.parse(responseBody)
+        const parsedBody: { error?: string } = JSON.parse(responseBody)
 
-        if (parsedBody.error) {
+        if (parsedBody.error != null) {
           return reject(new Error(parsedBody.error))
         }
 
@@ -29,7 +29,7 @@ export const request = async (url: string, options: https.RequestOptions, data: 
       reject(err)
     })
 
-    if (options.method !== EHttpVerb.GET && data) {
+    if (options.method !== EHttpVerb.GET && data !== null) {
       req.write(data)
     }
 

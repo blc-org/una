@@ -1,5 +1,5 @@
 import * as https from 'https'
-import { request } from '../../http/http-client.js'
+import { request } from '../../http'
 import { IBackend, watchInvoices } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
