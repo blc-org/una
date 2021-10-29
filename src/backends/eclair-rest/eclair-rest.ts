@@ -70,8 +70,7 @@ export default class EclairRest implements IBackend {
 
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.POST)
-    const results = await request(this.eclairRest.url + '/listpendinginvoices', options)
-    const initalInvoices = await results.json() as IInvoiceCreated[]
+    const initalInvoices = await request(this.eclairRest.url + '/listpendinginvoices', options) as IInvoiceCreated[]
     return initalInvoices.map(i => this.toInvoice2(i))
   }
 

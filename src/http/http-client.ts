@@ -29,7 +29,7 @@ export const request = async (url: string, options: https.RequestOptions, data: 
       reject(err)
     })
 
-    if (options.method !== EHttpVerb.GET) {
+    if (options.method !== EHttpVerb.GET && data) {
       req.write(data)
     }
 

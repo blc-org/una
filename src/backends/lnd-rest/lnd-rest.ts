@@ -54,8 +54,7 @@ export default class LndRest implements IBackend {
 
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.GET)
-    const results = await request(this.lndRest.url + '/v1/invoices?pending_only=true', options)
-    const initalInvoices = await results.json() as { invoices: IInvoice[] }
+    const initalInvoices = await request(this.lndRest.url + '/v1/invoices?pending_only=true', options) as { invoices: IInvoice[] }
     return initalInvoices.invoices.map(i => this.toInvoice(i))
   }
 
