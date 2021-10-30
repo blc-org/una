@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events'
-import { EclairRest, IBackend, LndRest } from './backends'
+import { ClnSocket, EclairRest, IBackend, LndRest } from './backends'
 import { EBackendType } from './enums'
-import { ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
+import { IClnSocketUnix, IClnSocketTcp, ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
 
 export class Una {
   private readonly client: IBackend | undefined
@@ -17,6 +17,12 @@ export class Una {
     } else if (backend === EBackendType.EclairRest) {
       const info = connectionInformation as IEclairRest
       this.client = new EclairRest({ url: info.url, user: info.user, password: info.password })
+    } else if (backend === EBackendType.ClnSocketUnix) {
+      const info = connectionInformation as IClnSocketUnix
+      this.client = new ClnSocket({ path: info.path })
+    } else if (backend === EBackendType.ClnSocketTcp) {
+      const info = connectionInformation as IClnSocketTcp
+      this.client = new ClnSocket({ host: info.host, port: info.port })
     } else {
       throw new Error('Backend not supported.')
     }
@@ -36,7 +42,7 @@ export class Una {
     if (invoice.amount === undefined && invoice.amountMsats === undefined) {
       throw new Error('amount or amountMsat must be defined')
     }
-    if (invoice.description !== undefined && invoice.descriptionHash !== undefined) {
+    if ((invoice.description !== undefined && invoice.descriptionHash !== undefined) || (invoice.description === undefined && invoice.descriptionHash === undefined)) {
       throw new Error('You must specify either description or descriptionHash, but not both')
     }
 
@@ -73,9 +79,17 @@ export class Una {
       const info = connectionInformation as IEclairRest
       return info.url !== undefined && info.user !== undefined && info.password !== undefined
     }
+    if (backend === EBackendType.ClnSocketUnix) {
+      const info = connectionInformation as IClnSocketUnix
+      return info.path !== undefined
+    }
+    if (backend === EBackendType.ClnSocketTcp) {
+      const info = connectionInformation as IClnSocketTcp
+      return info.host !== undefined && info.port !== undefined
+    }
 
     return false
   }
 }
 
-type ConnectionInformation = ILndRest | IEclairRest
+type ConnectionInformation = ILndRest | IEclairRest | IClnSocketUnix | IClnSocketTcp

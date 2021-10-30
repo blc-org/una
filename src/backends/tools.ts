@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import { IBackend } from '.'
 import { EInvoiceStatus } from '..'
 
@@ -42,3 +43,5 @@ export const URLToObject = (urlStr: string): any => {
     port: url.port
   }
 }
+
+export const generateUUID = (): string => randomUUID()

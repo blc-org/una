@@ -1,6 +1,7 @@
 export enum EBackendType {
   LndRest = 'LndRest',
-  ClightningGrpc = 'ClightningGrpc',
+  ClnSocketUnix = 'ClnSocketUnix',
+  ClnSocketTcp = 'ClnSocketTcp',
   EclairRest = 'EclairRest',
   LnBits = 'LnBits',
 }

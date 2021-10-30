@@ -5,7 +5,7 @@ export default interface Invoice {
   memo: string
   amount: number
   amountMsat: number
-  preImage?: string
+  preImage?: string | null
   paymentHash: string
   settled: boolean
   settleDate: Date | null
