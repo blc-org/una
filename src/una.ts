@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events'
-import { ClnSocket, EclairRest, IBackend, LndRest } from './backends'
+import { ClnSocket, ClnRest, EclairRest, IBackend, LndRest } from './backends'
 import { EBackendType } from './enums'
-import { IClnSocketUnix, IClnSocketTcp, ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
+import { IClnSocketUnix, IClnSocketTcp, IClnRest, ICreateInvoice, IEclairRest, ILndRest, Invoice } from './interfaces'
 
 export class Una {
   private readonly client: IBackend | undefined
@@ -23,6 +23,9 @@ export class Una {
     } else if (backend === EBackendType.ClnSocketTcp) {
       const info = connectionInformation as IClnSocketTcp
       this.client = new ClnSocket({ host: info.host, port: info.port })
+    } else if (backend === EBackendType.ClnRest) {
+      const info = connectionInformation as IClnRest
+      this.client = new ClnRest({ url: info.url, hexMacaroon: info.hexMacaroon })
     } else {
       throw new Error('Backend not supported.')
     }
@@ -87,9 +90,13 @@ export class Una {
       const info = connectionInformation as IClnSocketTcp
       return info.host !== undefined && info.port !== undefined
     }
+    if (backend === EBackendType.ClnRest) {
+      const info = connectionInformation as IClnRest
+      return info.url !== undefined && info.hexMacaroon !== undefined
+    }
 
     return false
   }
 }
 
-type ConnectionInformation = ILndRest | IEclairRest | IClnSocketUnix | IClnSocketTcp
+type ConnectionInformation = ILndRest | IEclairRest | IClnSocketUnix | IClnSocketTcp | IClnRest
