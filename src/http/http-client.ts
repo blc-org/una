@@ -18,7 +18,7 @@ export const request = async (options: https.RequestOptions, data: unknown = nul
         const parsedBody: { error?: string } = JSON.parse(responseBody)
 
         if (parsedBody.error != null) {
-          return reject(new Error(parsedBody.error))
+          return reject(parsedBody.error)
         }
 
         resolve(parsedBody)
