@@ -20,12 +20,17 @@ export default interface ICreateInvoice {
   descriptionHash: string
 
   /**
+     * Unique internal label, can be used to query the status of this invoice (clnRest and clnSocket only)
+     */
+  label?: string
+
+  /**
      * Number of seconds that the invoice will be valid
      */
   expireIn?: number
 
   /**
-     *An on-chain fallback address to receive the payment
+     * An on-chain fallback address to receive the payment
     */
   fallbackAddress?: string
 
