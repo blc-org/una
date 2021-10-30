@@ -32,3 +32,13 @@ export const watchInvoices = (backend: IBackend): void => {
     }).catch(err => console.error('Unable to fetch pending invoices', err))
   }, 5000)
 }
+
+export const URLToObject = (urlStr: string): any => {
+  const url = new URL(urlStr)
+
+  return {
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port
+  }
+}

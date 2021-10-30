@@ -1,6 +1,6 @@
 import * as https from 'https'
 import { request } from '../../http'
-import { IBackend, watchInvoices } from '..'
+import { IBackend, watchInvoices, URLToObject } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
@@ -21,29 +21,17 @@ export default class EclairRest implements IBackend {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
     const data: any = {
-      amountMsat: amountMsat
-    }
-
-    if (invoice.description !== undefined && invoice.descriptionHash === undefined) {
-      data.description = invoice.description
-    } else if (invoice.descriptionHash !== undefined && invoice.description === undefined) {
-      data.descriptionHash = invoice.descriptionHash
-    } else {
-      throw new Error('You must specify either description or descriptionHash, but not both')
-    }
-    if (invoice.expireIn !== undefined) {
-      data.expireIn = invoice.expireIn
-    }
-    if (invoice.fallbackAddress !== undefined) {
-      data.fallbackAddress = invoice.fallbackAddress
-    }
-    if (invoice.paymentPreimage !== undefined) {
-      data.paymentPreimage = invoice.paymentPreimage
+      amountMsat: amountMsat,
+      description: invoice.description,
+      descriptionHash: invoice.descriptionHash,
+      expireIn: invoice.expireIn,
+      fallbackAddress: invoice.fallbackAddress,
+      paymentPreimage: invoice.paymentPreimage
     }
 
     const body = this.prepareBody(data)
-    const options = this.getRequestOptions(EHttpVerb.POST)
-    const response = await request(this.eclairRest.url + '/createinvoice', options, body) as IInvoiceCreated
+    const options = this.getRequestOptions(EHttpVerb.POST, '/createinvoice')
+    const response = await request(options, body) as IInvoiceCreated
 
     return await this.getInvoice(response.paymentHash)
   }
@@ -54,8 +42,8 @@ export default class EclairRest implements IBackend {
     }
 
     const body = this.prepareBody(data)
-    const options = this.getRequestOptions(EHttpVerb.POST)
-    const response = await request(this.eclairRest.url + '/getreceivedinfo', options, body) as IInvoiceLookup
+    const options = this.getRequestOptions(EHttpVerb.POST, '/getreceivedinfo')
+    const response = await request(options, body) as IInvoiceLookup
 
     return this.toInvoice(response)
   }
@@ -69,8 +57,8 @@ export default class EclairRest implements IBackend {
   }
 
   public async getPendingInvoices (): Promise<Invoice[]> {
-    const options = this.getRequestOptions(EHttpVerb.POST)
-    const initalInvoices = await request(this.eclairRest.url + '/listpendinginvoices', options) as IInvoiceCreated[]
+    const options = this.getRequestOptions(EHttpVerb.POST, '/listpendinginvoices')
+    const initalInvoices = await request(options) as IInvoiceCreated[]
     return initalInvoices.map(i => this.toInvoice2(i))
   }
 
@@ -120,17 +108,21 @@ export default class EclairRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb, body: any = null): https.RequestOptions {
+  private getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
     return {
-      method: method,
+      method,
+      path,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: 'Basic ' + Buffer.from(`${this.eclairRest.user}:${this.eclairRest.password}`).toString('base64')
-      }
+      },
+      ...URLToObject(this.eclairRest.url)
     }
   }
 
   private prepareBody (data: any): string {
+    Object.keys(data).forEach(key => data[key] === undefined && delete data[key])
+
     return new URLSearchParams(data).toString()
   }
 }

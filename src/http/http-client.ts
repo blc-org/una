@@ -2,11 +2,11 @@ import * as http from 'http'
 import * as https from 'https'
 import { EHttpVerb } from '../enums'
 
-export const request = async (url: string, options: https.RequestOptions, data: unknown = null): Promise<any> => {
-  const httpClient = url.includes('https://') ? https : http
+export const request = async (options: https.RequestOptions, data: unknown = null): Promise<any> => {
+  const httpClient = options.protocol === 'https:' ? https : http
 
   return await new Promise((resolve, reject) => {
-    const req = httpClient.request(url, options, (res: any) => {
+    const req = httpClient.request(options, (res: any) => {
       res.setEncoding('utf8')
 
       let responseBody = ''

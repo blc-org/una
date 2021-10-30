@@ -1,5 +1,5 @@
 import * as https from 'https'
-import { base64ToHex, IBackend, watchInvoices } from '..'
+import { base64ToHex, IBackend, watchInvoices, URLToObject } from '..'
 import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoice } from '.'
@@ -30,16 +30,15 @@ export default class LndRest implements IBackend {
     }
 
     const body = this.prepareBody(data)
-    const options = this.getRequestOptions(EHttpVerb.POST)
-
-    const response = await request(this.lndRest.url + '/v1/invoices', options, body) as IInvoice
+    const options = this.getRequestOptions(EHttpVerb.POST, '/v1/invoices')
+    const response = await request(options, body) as IInvoice
 
     return await this.getInvoice(base64ToHex(response.r_hash))
   }
 
   public async getInvoice (hash: string): Promise<Invoice> {
-    const options = this.getRequestOptions(EHttpVerb.GET)
-    const response = await request(this.lndRest.url + '/v1/invoice/' + hash, options) as IInvoice
+    const options = this.getRequestOptions(EHttpVerb.GET, '/v1/invoice/' + hash)
+    const response = await request(options) as IInvoice
 
     return this.toInvoice(response)
   }
@@ -53,8 +52,9 @@ export default class LndRest implements IBackend {
   }
 
   public async getPendingInvoices (): Promise<Invoice[]> {
-    const options = this.getRequestOptions(EHttpVerb.GET)
-    const initalInvoices = await request(this.lndRest.url + '/v1/invoices?pending_only=true', options) as { invoices: IInvoice[] }
+    const options = this.getRequestOptions(EHttpVerb.GET, '/v1/invoices?pending_only=true')
+    const initalInvoices = await request(options) as { invoices: IInvoice[] }
+
     return initalInvoices.invoices.map(i => this.toInvoice(i))
   }
 
@@ -89,17 +89,19 @@ export default class LndRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb): https.RequestOptions {
+  private getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
     const agent = new https.Agent({
       rejectUnauthorized: false
     })
 
     return {
-      method: method,
+      method,
+      path,
       agent,
       headers: {
         'Grpc-Metadata-macaroon': this.lndRest.hexMacaroon
-      }
+      },
+      ...URLToObject(this.lndRest.url)
     }
   }
 
