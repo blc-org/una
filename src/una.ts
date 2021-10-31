@@ -29,8 +29,6 @@ export class Una {
     } else {
       throw new Error('Backend not supported.')
     }
-
-    this.client.startWatchingInvoices()
   }
 
   /**
@@ -69,6 +67,7 @@ export class Una {
     if (this.client === undefined) {
       throw new Error('No backend defined')
     }
+    this.client.startWatchingInvoices()
 
     return this.client.watchInvoices()
   }
