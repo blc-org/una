@@ -5,11 +5,14 @@ import { IClnRest } from '../../interfaces'
 import { EHttpVerb } from '../../enums'
 
 export default class ClnRest extends ClnBase {
+  protected readonly clnConfig: IClnRest
+
   constructor (clnRest: IClnRest) {
-    super(clnRest)
+    super()
+    this.clnConfig = clnRest
   }
 
-  public async request (config: IClnRest, body: any): Promise<any> {
+  protected async request (config: IClnRest, body: any): Promise<any> {
     const options: https.RequestOptions = {
       method: EHttpVerb.POST,
       path: '/v1/rpc',
