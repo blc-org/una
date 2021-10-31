@@ -7,13 +7,15 @@ import SocksProxyAgent from 'socks-proxy-agent'
 
 export default class ClnRest extends ClnBase {
   private readonly socksProxyUrl: string | null
+  protected readonly clnConfig: IClnRest
 
   constructor (clnRest: IClnRest, socksProxyUrl: string | null = null) {
-    super(clnRest)
+    super()
+    this.clnConfig = clnRest
     this.socksProxyUrl = socksProxyUrl
   }
 
-  public async request (config: IClnRest, body: any): Promise<any> {
+  protected async request (config: IClnRest, body: any): Promise<any> {
     const options: https.RequestOptions = {
       method: EHttpVerb.POST,
       path: '/v1/rpc',

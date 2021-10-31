@@ -1,16 +1,17 @@
+import { EventEmitter } from 'events'
 import { IBackend, watchInvoices, generateUUID, cleanParams } from '..'
-import { ICreateInvoice, Invoice, IClnSocketUnix, IClnSocketTcp, IClnRest } from '../../interfaces'
+import { ICreateInvoice, Invoice } from '../../interfaces'
 import { EInvoiceStatus } from '../../enums'
 import { IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
-import { EventEmitter } from 'events'
 
-export default class ClnBase implements IBackend {
-  private readonly clnConfig: IClnSocketUnix | IClnSocketTcp | IClnRest
+export default abstract class ClnBase implements IBackend {
+  protected abstract readonly clnConfig: any
+  protected abstract request (config: any, body: any): Promise<any>
+
   public readonly invoiceEmitter: EventEmitter
   public readonly invoicesToWatch: Invoice[]
 
-  constructor (clnConfig: IClnSocketUnix | IClnSocketTcp | IClnRest) {
-    this.clnConfig = clnConfig
+  constructor () {
     this.invoicesToWatch = []
     this.invoiceEmitter = new EventEmitter()
   }
@@ -43,7 +44,7 @@ export default class ClnBase implements IBackend {
     return await this.toInvoice(result.invoices[0])
   }
 
-  private async listInvoices (hash?: string): Promise<IListInvoices> {
+  protected async listInvoices (hash?: string): Promise<IListInvoices> {
     const data = {
       payment_hash: hash
     }
@@ -54,7 +55,7 @@ export default class ClnBase implements IBackend {
     return response
   }
 
-  private async decodeInvoice (bolt11: string): Promise<IInvoiceDecode> {
+  protected async decodeInvoice (bolt11: string): Promise<IInvoiceDecode> {
     const data = {
       bolt11
     }
@@ -82,11 +83,11 @@ export default class ClnBase implements IBackend {
     return await Promise.all(finalInvoices)
   }
 
-  private toDate (millisecond: number | string): Date {
+  protected toDate (millisecond: number | string): Date {
     return new Date(Number(millisecond) * 1000)
   }
 
-  private async toInvoice (invoice: IListedInvoice): Promise<Invoice> {
+  protected async toInvoice (invoice: IListedInvoice): Promise<Invoice> {
     if (invoice.bolt11 !== null) {
       throw new Error('Invoice is not a bolt11')
     }
@@ -119,7 +120,7 @@ export default class ClnBase implements IBackend {
     }
   }
 
-  public prepareBody (method: string, params: any = {}): string | undefined {
+  protected prepareBody (method: string, params: any = {}): string | undefined {
     const cleanedParams = cleanParams(params)
 
     const body = {
@@ -131,6 +132,4 @@ export default class ClnBase implements IBackend {
 
     return JSON.stringify(body)
   }
-
-  public async request (config: any, body: any): Promise<any> { }
 }
