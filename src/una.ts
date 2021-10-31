@@ -6,17 +6,17 @@ import { IClnSocketUnix, IClnSocketTcp, IClnRest, ICreateInvoice, IEclairRest, I
 export class Una {
   private readonly client: IBackend | undefined
 
-  constructor (backend: EBackendType, connectionInformation: ConnectionInformation) {
+  constructor (backend: EBackendType, connectionInformation: ConnectionInformation, socksProxyUrl: string | null = null) {
     if (!this.verifyConnectionInformation(connectionInformation, backend)) {
       throw new Error('connectionInformation is not correct for the type ' + backend)
     }
 
     if (backend === EBackendType.LndRest) {
       const info = connectionInformation as ILndRest
-      this.client = new LndRest({ url: info.url, hexMacaroon: info.hexMacaroon })
+      this.client = new LndRest({ url: info.url, hexMacaroon: info.hexMacaroon }, socksProxyUrl)
     } else if (backend === EBackendType.EclairRest) {
       const info = connectionInformation as IEclairRest
-      this.client = new EclairRest({ url: info.url, user: info.user, password: info.password })
+      this.client = new EclairRest({ url: info.url, user: info.user, password: info.password }, socksProxyUrl)
     } else if (backend === EBackendType.ClnSocketUnix) {
       const info = connectionInformation as IClnSocketUnix
       this.client = new ClnSocket({ path: info.path })
@@ -25,7 +25,7 @@ export class Una {
       this.client = new ClnSocket({ host: info.host, port: info.port })
     } else if (backend === EBackendType.ClnRest) {
       const info = connectionInformation as IClnRest
-      this.client = new ClnRest({ url: info.url, hexMacaroon: info.hexMacaroon })
+      this.client = new ClnRest({ url: info.url, hexMacaroon: info.hexMacaroon }, socksProxyUrl)
     } else {
       throw new Error('Backend not supported.')
     }

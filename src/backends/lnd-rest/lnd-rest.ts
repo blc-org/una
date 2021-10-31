@@ -5,16 +5,19 @@ import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoice } from '.'
 import { EventEmitter } from 'events'
 import { request } from '../../http'
+import SocksProxyAgent from 'socks-proxy-agent'
 
 export default class LndRest implements IBackend {
   private readonly lndRest: ILndRest
   public readonly invoiceEmitter: EventEmitter
   public readonly invoicesToWatch: Invoice[]
+  private readonly socksProxyUrl: string | null
 
-  constructor (lndRest: ILndRest) {
+  constructor (lndRest: ILndRest, socksProxyUrl: string | null = null) {
     this.lndRest = lndRest
     this.invoicesToWatch = []
     this.invoiceEmitter = new EventEmitter()
+    this.socksProxyUrl = socksProxyUrl
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -90,9 +93,16 @@ export default class LndRest implements IBackend {
   }
 
   private getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
-    const agent = new https.Agent({
-      rejectUnauthorized: false
-    })
+    let agent: https.Agent
+
+    if (this.socksProxyUrl !== null) {
+      const socks = new URL(this.socksProxyUrl)
+      agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol, tls: { rejectUnauthorized: false } })
+    } else {
+      agent = new https.Agent({
+        rejectUnauthorized: false
+      })
+    }
 
     return {
       method,

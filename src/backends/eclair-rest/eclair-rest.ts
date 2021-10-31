@@ -5,16 +5,19 @@ import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
 import { EventEmitter } from 'events'
+import SocksProxyAgent from 'socks-proxy-agent'
 
 export default class EclairRest implements IBackend {
   private readonly eclairRest: IEclairRest
   public readonly invoiceEmitter: EventEmitter
   public readonly invoicesToWatch: Invoice[]
+  private readonly socksProxyUrl: string | null
 
-  constructor (eclairRest: IEclairRest) {
+  constructor (eclairRest: IEclairRest, socksProxyUrl: string | null = null) {
     this.eclairRest = eclairRest
     this.invoicesToWatch = []
     this.invoiceEmitter = new EventEmitter()
+    this.socksProxyUrl = socksProxyUrl
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -109,7 +112,7 @@ export default class EclairRest implements IBackend {
   }
 
   private getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
-    return {
+    const options: https.RequestOptions = {
       method,
       path,
       headers: {
@@ -118,6 +121,13 @@ export default class EclairRest implements IBackend {
       },
       ...URLToObject(this.eclairRest.url)
     }
+
+    if (this.socksProxyUrl !== null) {
+      const socks = new URL(this.socksProxyUrl)
+      options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol, tls: { rejectUnauthorized: false } })
+    }
+
+    return options
   }
 
   private prepareBody (data: any): string {
