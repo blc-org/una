@@ -3,7 +3,6 @@ import { ClnBase } from '..'
 import { IClnSocketUnix, IClnSocketTcp } from '../../interfaces'
 
 export default class ClnSocket extends ClnBase {
-
   constructor (clnSocket: IClnSocketUnix | IClnSocketTcp) {
     super(clnSocket)
   }
@@ -12,4 +11,3 @@ export default class ClnSocket extends ClnBase {
     return await rpcRequest(config, body)
   }
 }
-

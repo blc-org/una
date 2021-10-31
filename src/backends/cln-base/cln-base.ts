@@ -1,10 +1,8 @@
-import { IBackend, watchInvoices, generateUUID } from '..'
-import { ICreateInvoice, Invoice } from '../../interfaces'
+import { IBackend, watchInvoices, generateUUID, cleanParams } from '..'
+import { ICreateInvoice, Invoice, IClnSocketUnix, IClnSocketTcp, IClnRest } from '../../interfaces'
 import { EInvoiceStatus } from '../../enums'
-import { IInvoiceDecode, IInvoiceCreated, IListInvoices } from '.'
+import { IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
 import { EventEmitter } from 'events'
-import { IListedInvoice } from './i-list-invoices.js'
-import { IClnSocketUnix, IClnSocketTcp, IClnRest } from '../../interfaces'
 
 export default class ClnBase implements IBackend {
   private readonly clnConfig: IClnSocketUnix | IClnSocketTcp | IClnRest
@@ -89,7 +87,11 @@ export default class ClnBase implements IBackend {
   }
 
   private async toInvoice (invoice: IListedInvoice): Promise<Invoice> {
-    const decodedInvoice = await this.decodeInvoice(invoice.bolt11!)
+    if (invoice.bolt11 !== null) {
+      throw new Error('Invoice is not a bolt11')
+    }
+
+    const decodedInvoice = await this.decodeInvoice(invoice.bolt11)
 
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
@@ -103,7 +105,7 @@ export default class ClnBase implements IBackend {
     }
 
     return {
-      bolt11: invoice.bolt11!,
+      bolt11: invoice.bolt11,
       amount: invoice.msatoshi / 1000,
       amountMsat: Number(invoice.amount_msat?.replace('msat', '')),
       creationDate: this.toDate(decodedInvoice.created_at),
@@ -118,17 +120,17 @@ export default class ClnBase implements IBackend {
   }
 
   public prepareBody (method: string, params: any = {}): string | undefined {
-    Object.keys(params).forEach(key => (params[key] === undefined) && delete params[key])
+    const cleanedParams = cleanParams(params)
 
     const body = {
       jsonrpc: '2.0',
       method,
-      params,
+      cleanedParams,
       id: 0
     }
 
     return JSON.stringify(body)
   }
 
-  public async request (config: any, body: any): Promise<any> {}
+  public async request (config: any, body: any): Promise<any> { }
 }

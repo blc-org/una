@@ -1,6 +1,6 @@
 import * as https from 'https'
 import { request } from '../../http'
-import { IBackend, watchInvoices, URLToObject } from '..'
+import { IBackend, watchInvoices, URLToObject, cleanParams } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
@@ -121,8 +121,8 @@ export default class EclairRest implements IBackend {
   }
 
   private prepareBody (data: any): string {
-    Object.keys(data).forEach(key => data[key] === undefined && delete data[key])
+    const cleanedParams = cleanParams(data)
 
-    return new URLSearchParams(data).toString()
+    return new URLSearchParams(cleanedParams).toString()
   }
 }

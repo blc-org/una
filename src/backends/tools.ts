@@ -45,3 +45,15 @@ export const URLToObject = (urlStr: string): any => {
 }
 
 export const generateUUID = (): string => randomUUID()
+
+export const cleanParams = (params: any): any => {
+  const cleanedParams: any = {}
+  for (const key in params) {
+    const currentValue = params[key]
+    if (currentValue !== undefined) {
+      cleanedParams[key] = currentValue
+    }
+  }
+
+  return cleanedParams
+}
