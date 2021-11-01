@@ -164,7 +164,7 @@ export default class LndHub implements IBackend {
 
     if (this.socksProxyUrl !== null) {
       const socks = new URL(this.socksProxyUrl)
-      options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol, tls: { rejectUnauthorized: false } })
+      options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol })
     }
 
     return options
@@ -182,7 +182,7 @@ export default class LndHub implements IBackend {
 
     if (this.socksProxyUrl !== null) {
       const socks = new URL(this.socksProxyUrl)
-      options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol, tls: { rejectUnauthorized: false } })
+      options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol })
     }
 
     const body = this.prepareBody({ login: this.client.login, password: this.client.password })
