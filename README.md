@@ -12,9 +12,9 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
 
 ## Supported backends
  - [x] LND (REST)
- - [ ] c-lightning
+ - [x] c-lightning
  - [x] Eclair (REST)
- - [ ] LndHub
+ - [x] LndHub
  - [ ] LNBits
  - Want another implementation? [Open an issue](https://github.com/Dolu89/una/issues/new)
 
@@ -26,11 +26,22 @@ import { Una, EBackendType, ICreateInvoice, Invoice } from 'una-wrapper'
 const { Una, EBackendType, ICreateInvoice, Invoice } = require('una-wrapper')
 
 // LND Rest
-const hexMacaroon = '0201036...311c811'
-const unaWrapper = new Una(EBackendType.LndRest, { url: 'https://127.0.0.1:8080', hexMacaroon })
+const unaWrapper = new Una(EBackendType.LndRest, { url: 'https://127.0.0.1:8080', hexMacaroon: '0201036...311c811' })
 
 // Eclair Rest
 const unaWrapper = new Una(EBackendType.EclairRest, { url: 'http://127.0.0.1:8080', user: '', password: 'eclairpw' })
+
+// C-lightning
+const unaWrapper = new Una(EBackendType.ClnRest, { url: '127.0.0.1:8080', hexMacaroon: '0201036...311c811' })
+const unaWrapper = new Una(EBackendType.ClnSocketTcp, { host: '127.0.0.1', port: 27743 })
+const unaWrapper = new Una(EBackendType.ClnSocketUnix, { path: 'unix://root/.lightning/lightning-rpc' })
+
+// LndHub
+const unaWrapper = new Una(EBackendType.LndHub, { uri: 'lndhub://login:password@https://lndhub.io/' })
+const unaWrapper = new Una(EBackendType.LndHub, { url: 'http://lndhub.io/', login: 'login', password: 'password' })
+
+// Tor is supported for LND Rest, Eclair Rest, C-lightning Rest and LndHub
+const unaWrapper = new Una(EBackendType.LndHub, { url: 'http://TorLndhub.onion/', login: 'login', password: 'password' }, 'socks5h://127.0.0.1:9050')
 
 /*
   Create an invoice of 15k satoshis with 'Hello' as memo
