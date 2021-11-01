@@ -15,10 +15,13 @@ export const request = async (options: https.RequestOptions, data: unknown = nul
       })
 
       res.on('end', () => {
+        if (!responseBody.startsWith('{') && !responseBody.startsWith('[')) {
+          return reject(responseBody)
+        }
         const parsedBody: { error?: string } = JSON.parse(responseBody)
 
         if (parsedBody.error != null) {
-          return reject(parsedBody.error)
+          return reject(parsedBody)
         }
 
         resolve(parsedBody)

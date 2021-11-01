@@ -4,5 +4,5 @@ export enum EBackendType {
   ClnSocketTcp = 'ClnSocketTcp',
   ClnRest = 'ClnRest',
   EclairRest = 'EclairRest',
-  LnBits = 'LnBits',
+  LndHub = 'LndHub',
 }

@@ -10,7 +10,7 @@ export const hexToBase64 = (base64: string): string => {
   return Buffer.from(base64, 'hex').toString('base64')
 }
 
-export const watchInvoices = (backend: IBackend): void => {
+export const watchInvoices = (backend: IBackend, intervalMs: number | null = null): void => {
   setInterval(() => {
     backend.getPendingInvoices().then(pendingInvoices => {
       for (const pendingInvoice of pendingInvoices) {
@@ -23,7 +23,7 @@ export const watchInvoices = (backend: IBackend): void => {
         backend.getInvoice(invoiceToWatch.paymentHash).then(invoice => {
           if (invoice.status !== invoiceToWatch.status) {
             backend.invoiceEmitter.emit('invoice-updated', invoice)
-            if (invoice.status === EInvoiceStatus.Cancelled || invoice.status === EInvoiceStatus.Settled) {
+            if (invoice.status !== EInvoiceStatus.Pending) {
               const indexToRemove = backend.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
               backend.invoicesToWatch.splice(indexToRemove)
             }
@@ -31,7 +31,7 @@ export const watchInvoices = (backend: IBackend): void => {
         }).catch(err => console.error('Unable to fetch invoice', err))
       }
     }).catch(err => console.error('Unable to fetch pending invoices', err))
-  }, 5000)
+  }, intervalMs ?? 5000)
 }
 
 export const URLToObject = (urlStr: string): any => {
