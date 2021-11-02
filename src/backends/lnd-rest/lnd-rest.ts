@@ -29,7 +29,7 @@ export default class LndRest implements IBackend {
       fallback_addr: invoice.fallbackAddress,
       paymentPreimage: invoice.paymentPreimage,
       memo: invoice.description,
-      description_hash: invoice.descriptionHash
+      description_hash: Buffer.from(invoice.descriptionHash, 'hex').toString('base64')
     }
 
     const body = this.prepareBody(data)
