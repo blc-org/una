@@ -1,23 +1,18 @@
 import * as https from 'https'
 import { request } from '../../http'
-import { IBackend, watchInvoices, URLToObject, cleanParams } from '..'
+import { Backend, URLToObject, cleanParams } from '..'
 import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
-import { EventEmitter } from 'events'
 import SocksProxyAgent from 'socks-proxy-agent'
 
-export default class EclairRest implements IBackend {
-  private readonly eclairRest: IEclairRest
-  public readonly invoiceEmitter: EventEmitter
-  public readonly invoicesToWatch: Invoice[]
-  private readonly socksProxyUrl: string | null
+export default class EclairRest extends Backend {
+  protected readonly config: IEclairRest
 
   constructor (eclairRest: IEclairRest, socksProxyUrl: string | null = null) {
-    this.eclairRest = eclairRest
-    this.invoicesToWatch = []
-    this.invoiceEmitter = new EventEmitter()
-    this.socksProxyUrl = socksProxyUrl
+    super()
+    this.config = eclairRest
+    this.setSocksProxyUrl(socksProxyUrl)
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -34,7 +29,7 @@ export default class EclairRest implements IBackend {
 
     const body = this.prepareBody(data)
     const options = this.getRequestOptions(EHttpVerb.POST, '/createinvoice')
-    const response = await request(options, body) as IInvoiceCreated
+    const response = await this.request(options, body) as IInvoiceCreated
 
     return await this.getInvoice(response.paymentHash)
   }
@@ -46,30 +41,19 @@ export default class EclairRest implements IBackend {
 
     const body = this.prepareBody(data)
     const options = this.getRequestOptions(EHttpVerb.POST, '/getreceivedinfo')
-    const response = await request(options, body) as IInvoiceLookup
+    const response = await this.request(options, body) as IInvoiceLookup
 
     return this.toInvoice(response)
   }
 
-  public watchInvoices (): EventEmitter {
-    return this.invoiceEmitter
-  }
-
-  public startWatchingInvoices (): void {
-    watchInvoices(this)
-  }
-
   public async getPendingInvoices (): Promise<Invoice[]> {
     const options = this.getRequestOptions(EHttpVerb.POST, '/listpendinginvoices')
-    const initalInvoices = await request(options) as IInvoiceCreated[]
+    const initalInvoices = await this.request(options) as IInvoiceCreated[]
+
     return initalInvoices.map(i => this.toInvoice2(i))
   }
 
-  private toDate (millisecond: string): Date {
-    return new Date(Number(millisecond))
-  }
-
-  private toInvoice (invoice: IInvoiceLookup): Invoice {
+  protected toInvoice (invoice: IInvoiceLookup): Invoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (invoice.status.type === 'pending') {
@@ -96,7 +80,7 @@ export default class EclairRest implements IBackend {
     }
   }
 
-  private toInvoice2 (invoice: IInvoiceCreated): Invoice {
+  protected toInvoice2 (invoice: IInvoiceCreated): Invoice {
     return {
       bolt11: invoice.serialized,
       amount: invoice.amount / 1000,
@@ -111,15 +95,15 @@ export default class EclairRest implements IBackend {
     }
   }
 
-  private getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
+  protected getRequestOptions (method: EHttpVerb, path: string): https.RequestOptions {
     const options: https.RequestOptions = {
       method,
       path,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: 'Basic ' + Buffer.from(`${this.eclairRest.user}:${this.eclairRest.password}`).toString('base64')
+        Authorization: 'Basic ' + Buffer.from(`${this.config.user}:${this.config.password}`).toString('base64')
       },
-      ...URLToObject(this.eclairRest.url)
+      ...URLToObject(this.config.url)
     }
 
     if (this.socksProxyUrl !== null) {
@@ -130,9 +114,13 @@ export default class EclairRest implements IBackend {
     return options
   }
 
-  private prepareBody (data: any): string {
+  protected prepareBody (data: any): string {
     const cleanedParams = cleanParams(data)
 
     return new URLSearchParams(cleanedParams).toString()
+  }
+
+  protected async request (options: https.RequestOptions, body: any = undefined): Promise<any> {
+    return request(options, body)
   }
 }
