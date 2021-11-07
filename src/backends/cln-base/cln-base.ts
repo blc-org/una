@@ -1,19 +1,11 @@
-import { EventEmitter } from 'events'
-import { IBackend, watchInvoices, generateUUID, cleanParams } from '..'
+import { Backend, generateUUID, cleanParams } from '..'
 import { ICreateInvoice, Invoice } from '../../interfaces'
 import { EInvoiceStatus } from '../../enums'
 import { IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
 
-export default abstract class ClnBase implements IBackend {
-  protected abstract readonly clnConfig: any
-  protected abstract request (config: any, body: any): Promise<any>
-
-  public readonly invoiceEmitter: EventEmitter
-  public readonly invoicesToWatch: Invoice[]
-
+export default abstract class ClnBase extends Backend {
   constructor () {
-    this.invoicesToWatch = []
-    this.invoiceEmitter = new EventEmitter()
+    super()
   }
 
   public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
@@ -33,7 +25,7 @@ export default abstract class ClnBase implements IBackend {
     }
 
     const body = this.prepareBody('invoice', data)
-    const response = await this.request(this.clnConfig, body) as IInvoiceCreated
+    const response = await this.request(body) as IInvoiceCreated
 
     return await this.getInvoice(response.payment_hash)
   }
@@ -50,7 +42,7 @@ export default abstract class ClnBase implements IBackend {
     }
 
     const body = this.prepareBody('listinvoices', data)
-    const response = await this.request(this.clnConfig, body) as IListInvoices
+    const response = await this.request(body) as IListInvoices
 
     return response
   }
@@ -61,30 +53,18 @@ export default abstract class ClnBase implements IBackend {
     }
 
     const body = this.prepareBody('decodepay', data)
-    const response = await this.request(this.clnConfig, body) as IInvoiceDecode
+    const response = await this.request(body) as IInvoiceDecode
 
     return response
   }
 
-  public watchInvoices (): EventEmitter {
-    return this.invoiceEmitter
-  }
-
-  public startWatchingInvoices (): void {
-    watchInvoices(this)
-  }
-
   public async getPendingInvoices (): Promise<Invoice[]> {
     const body = this.prepareBody('listinvoices')
-    const allInvoices = await this.request(this.clnConfig, body) as IListInvoices
+    const allInvoices = await this.request(body) as IListInvoices
     const pendingInvoices = allInvoices.invoices.filter(i => i.status === 'unpaid')
     const finalInvoices = await pendingInvoices.map(async i => await this.toInvoice(i))
 
     return await Promise.all(finalInvoices)
-  }
-
-  protected toDate (millisecond: number | string): Date {
-    return new Date(Number(millisecond) * 1000)
   }
 
   protected async toInvoice (invoice: IListedInvoice): Promise<Invoice> {

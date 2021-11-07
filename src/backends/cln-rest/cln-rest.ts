@@ -6,25 +6,24 @@ import { EHttpVerb } from '../../enums'
 import SocksProxyAgent from 'socks-proxy-agent'
 
 export default class ClnRest extends ClnBase {
-  private readonly socksProxyUrl: string | null
-  protected readonly clnConfig: IClnRest
+  protected readonly config: IClnRest
 
   constructor (clnRest: IClnRest, socksProxyUrl: string | null = null) {
     super()
-    this.clnConfig = clnRest
-    this.socksProxyUrl = socksProxyUrl
+    this.config = clnRest
+    this.setSocksProxyUrl(socksProxyUrl)
   }
 
-  protected async request (config: IClnRest, body: any): Promise<any> {
+  protected async request (body: any): Promise<any> {
     const options: https.RequestOptions = {
       method: EHttpVerb.POST,
       path: '/v1/rpc',
       headers: {
         'Content-Type': 'application/json',
-        macaroon: config.hexMacaroon,
+        macaroon: this.config.hexMacaroon,
         encodingtype: 'hex'
       },
-      ...URLToObject(config.url)
+      ...URLToObject(this.config.url)
     }
 
     if (this.socksProxyUrl !== null) {
