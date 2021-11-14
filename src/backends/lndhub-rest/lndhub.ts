@@ -1,6 +1,6 @@
 import * as https from 'https'
 import { IBackend, watchInvoices, URLToObject } from '..'
-import { ICreateInvoice, ILndHub, Invoice } from '../../interfaces'
+import { ICreateInvoice, ILndHub, IInvoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { EventEmitter } from 'events'
 import { request } from '../../http'
@@ -10,7 +10,7 @@ import { IError, IInvoiceCreated, IInvoiceDecoded, ILoginAccess, IUserInvoice } 
 export default class LndHub implements IBackend {
   private readonly client: ILndHub
   public readonly invoiceEmitter: EventEmitter
-  public readonly invoicesToWatch: Invoice[]
+  public readonly invoicesToWatch: IInvoice[]
   private readonly socksProxyUrl: string | null
   private accessToken: string | undefined
 
@@ -33,7 +33,7 @@ export default class LndHub implements IBackend {
     }
   }
 
-  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     const amount = invoice.amount !== undefined ? invoice.amount : invoice.amountMsats * 1000
 
     const data = {
@@ -48,7 +48,7 @@ export default class LndHub implements IBackend {
     return await this.getInvoiceByBolt11(response.payment_request)
   }
 
-  private async getInvoiceByBolt11 (bolt11: string): Promise<Invoice> {
+  private async getInvoiceByBolt11 (bolt11: string): Promise<IInvoice> {
     const options = await this.getRequestOptions(EHttpVerb.GET, '/decodeinvoice?invoice=' + bolt11)
     const response = await request(options) as IInvoiceDecoded
 
@@ -57,7 +57,7 @@ export default class LndHub implements IBackend {
     return this.toInvoice(response, bolt11, paid)
   }
 
-  public async getInvoice (hash: string): Promise<Invoice> {
+  public async getInvoice (hash: string): Promise<IInvoice> {
     const invoice = (await this.getInvoices()).find(i => i.payment_hash === hash)
     if (invoice == null) {
       throw new Error('Invoice not found')
@@ -80,7 +80,7 @@ export default class LndHub implements IBackend {
     watchInvoices(this, 10000)
   }
 
-  public async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<IInvoice[]> {
     const pendingInvoices = (await this.getInvoices()).filter(i => !this.isExpired(i.timestamp, i.expire_time) && i.ispaid === false)
     return pendingInvoices.map(invoice => this.toInvoice2(invoice))
   }
@@ -93,7 +93,7 @@ export default class LndHub implements IBackend {
     return new Date(Number(millisecond) * 1000)
   }
 
-  private toInvoice (invoice: IInvoiceDecoded, bolt11: string, isPaid: boolean): Invoice {
+  private toInvoice (invoice: IInvoiceDecoded, bolt11: string, isPaid: boolean): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (isPaid) {
@@ -120,7 +120,7 @@ export default class LndHub implements IBackend {
     }
   }
 
-  private toInvoice2 (invoice: IUserInvoice): Invoice {
+  private toInvoice2 (invoice: IUserInvoice): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (invoice.ispaid === true) {

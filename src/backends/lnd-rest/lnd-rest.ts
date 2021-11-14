@@ -1,8 +1,8 @@
 import * as https from 'https'
 import { Backend, URLToObject, base64ToHex } from '..'
-import { ICreateInvoice, ILndRest, Invoice } from '../../interfaces'
+import { ICreateInvoice, ILndRest, IInvoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
-import { IInvoice } from '.'
+import { ILndInvoice } from '.'
 import { request } from '../../http'
 import SocksProxyAgent from 'socks-proxy-agent'
 
@@ -15,7 +15,7 @@ export default class LndRest extends Backend {
     this.setSocksProxyUrl(socksProxyUrl)
   }
 
-  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
     const data = {
@@ -29,26 +29,26 @@ export default class LndRest extends Backend {
 
     const body = this.prepareBody(data)
     const options = this.getRequestOptions(EHttpVerb.POST, '/v1/invoices')
-    const response = await this.request(options, body) as IInvoice
+    const response = await this.request(options, body) as ILndInvoice
 
     return await this.getInvoice(base64ToHex(response.r_hash))
   }
 
-  public async getInvoice (hash: string): Promise<Invoice> {
+  public async getInvoice (hash: string): Promise<IInvoice> {
     const options = this.getRequestOptions(EHttpVerb.GET, '/v1/invoice/' + hash)
-    const response = await this.request(options) as IInvoice
+    const response = await this.request(options) as ILndInvoice
 
     return this.toInvoice(response)
   }
 
-  public async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<IInvoice[]> {
     const options = this.getRequestOptions(EHttpVerb.GET, '/v1/invoices?pending_only=true')
-    const initalInvoices = await this.request(options) as { invoices: IInvoice[] }
+    const initalInvoices = await this.request(options) as { invoices: ILndInvoice[] }
 
     return initalInvoices.invoices.map(i => this.toInvoice(i))
   }
 
-  protected toInvoice (invoice: IInvoice): Invoice {
+  protected toInvoice (invoice: ILndInvoice): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     if (invoice.state === 'OPEN') {
       status = EInvoiceStatus.Pending
@@ -103,6 +103,6 @@ export default class LndRest extends Backend {
   }
 
   protected async request (options: https.RequestOptions, body: any = undefined): Promise<any> {
-    return request(options, body)
+    return await request(options, body)
   }
 }

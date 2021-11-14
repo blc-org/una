@@ -1,11 +1,11 @@
 export default interface ICreateInvoice {
   /**
-     * Amount in msats. You must specify either amount or amountMsats, but not both.
+     * Amount in sats. You must specify either amount or amountMsats, but not both.
      */
   amount: number
 
   /**
-     * Amount in sats. You must specify either amount or amountMsats, but not both.
+     * Amount in msats. You must specify either amount or amountMsats, but not both.
      */
   amountMsats: number
 

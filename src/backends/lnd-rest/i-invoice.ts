@@ -1,4 +1,4 @@
-export interface IInvoice {
+export interface ILndInvoice {
   memo: string
   r_preimage: string
   r_hash: string

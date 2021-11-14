@@ -1,9 +1,23 @@
-import ICreateInvoice from './i-create-invoice.js'
-import IEclairRest from './i-eclair-rest.js'
-import Invoice from './i-invoice.js'
-import ILndRest from './i-lnd-rest.js'
-import IClnRest from './i-cln-rest.js'
-import { IClnSocketUnix, IClnSocketTcp } from './i-cln-socket.js'
-import ILndHub from './i-lnd-hub.js'
+import {
+  IEclairRest,
+  ILndRest,
+  IClnRest,
+  IClnSocketUnix,
+  IClnSocketTcp,
+  ILndHub
+} from './backends'
 
-export { IEclairRest, Invoice, ILndRest, ICreateInvoice, IClnSocketUnix, IClnSocketTcp, IClnRest, ILndHub }
+import { ICreateInvoice } from './methods'
+
+import { IInvoice } from './results'
+
+export {
+  IEclairRest,
+  ILndRest,
+  IClnRest,
+  IClnSocketUnix,
+  IClnSocketTcp,
+  ILndHub,
+  ICreateInvoice,
+  IInvoice
+}

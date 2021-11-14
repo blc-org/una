@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events'
 import { ClnSocket, ClnRest, EclairRest, IBackend, LndRest, LndHub } from './backends'
 import { EBackendType } from './enums'
-import { IClnSocketUnix, IClnSocketTcp, IClnRest, ICreateInvoice, IEclairRest, ILndRest, Invoice, ILndHub } from './interfaces'
+import { IClnSocketUnix, IClnSocketTcp, IClnRest, ICreateInvoice, IEclairRest, ILndRest, IInvoice, ILndHub } from './interfaces'
 
 export class Una {
   private readonly client: IBackend | undefined
@@ -37,9 +37,9 @@ export class Una {
   /**
        * Create an invoice
        * @param invoice {ICreateInvoice} object
-       * @returns {Invoice} Invoice
+       * @returns {IInvoice} Invoice
        */
-  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     if (this.client === undefined) {
       throw new Error('No backend defined')
     }
@@ -56,9 +56,9 @@ export class Una {
   /**
        * Get an invoice previously created
        * @param hash hex encoded payment hash
-       * @returns {Invoice} Invoice
+       * @returns {IInvoice} Invoice
        */
-  public async getInvoice (hash: string): Promise<Invoice> {
+  public async getInvoice (hash: string): Promise<IInvoice> {
     if (this.client === undefined) {
       throw new Error('No backend defined')
     }
