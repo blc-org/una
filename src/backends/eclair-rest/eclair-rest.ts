@@ -1,7 +1,7 @@
 import * as https from 'https'
 import { request } from '../../http'
 import { Backend, URLToObject, cleanParams } from '..'
-import { ICreateInvoice, IEclairRest, Invoice } from '../../interfaces'
+import { ICreateInvoice, IEclairRest, IInvoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
 import SocksProxyAgent from 'socks-proxy-agent'
@@ -15,7 +15,7 @@ export default class EclairRest extends Backend {
     this.setSocksProxyUrl(socksProxyUrl)
   }
 
-  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
 
     const data: any = {
@@ -34,7 +34,7 @@ export default class EclairRest extends Backend {
     return await this.getInvoice(response.paymentHash)
   }
 
-  public async getInvoice (hash: string): Promise<Invoice> {
+  public async getInvoice (hash: string): Promise<IInvoice> {
     const data = {
       paymentHash: hash
     }
@@ -46,14 +46,14 @@ export default class EclairRest extends Backend {
     return this.toInvoice(response)
   }
 
-  public async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<IInvoice[]> {
     const options = this.getRequestOptions(EHttpVerb.POST, '/listpendinginvoices')
     const initalInvoices = await this.request(options) as IInvoiceCreated[]
 
     return initalInvoices.map(i => this.toInvoice2(i))
   }
 
-  protected toInvoice (invoice: IInvoiceLookup): Invoice {
+  protected toInvoice (invoice: IInvoiceLookup): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (invoice.status.type === 'pending') {
@@ -80,7 +80,7 @@ export default class EclairRest extends Backend {
     }
   }
 
-  protected toInvoice2 (invoice: IInvoiceCreated): Invoice {
+  protected toInvoice2 (invoice: IInvoiceCreated): IInvoice {
     return {
       bolt11: invoice.serialized,
       amount: invoice.amount / 1000,
@@ -121,6 +121,6 @@ export default class EclairRest extends Backend {
   }
 
   protected async request (options: https.RequestOptions, body: any = undefined): Promise<any> {
-    return request(options, body)
+    return await request(options, body)
   }
 }

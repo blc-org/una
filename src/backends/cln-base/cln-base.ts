@@ -1,5 +1,5 @@
 import { Backend, generateUUID, cleanParams } from '..'
-import { ICreateInvoice, Invoice } from '../../interfaces'
+import { ICreateInvoice, IInvoice } from '../../interfaces'
 import { EInvoiceStatus } from '../../enums'
 import { IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
 
@@ -8,7 +8,7 @@ export default abstract class ClnBase extends Backend {
     super()
   }
 
-  public async createInvoice (invoice: ICreateInvoice): Promise<Invoice> {
+  public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
     const label = invoice.label !== undefined ? invoice.label : generateUUID()
 
@@ -30,7 +30,7 @@ export default abstract class ClnBase extends Backend {
     return await this.getInvoice(response.payment_hash)
   }
 
-  public async getInvoice (hash: string): Promise<Invoice> {
+  public async getInvoice (hash: string): Promise<IInvoice> {
     const result = await this.listInvoices(hash)
 
     return await this.toInvoice(result.invoices[0])
@@ -58,7 +58,7 @@ export default abstract class ClnBase extends Backend {
     return response
   }
 
-  public async getPendingInvoices (): Promise<Invoice[]> {
+  public async getPendingInvoices (): Promise<IInvoice[]> {
     const body = this.prepareBody('listinvoices')
     const allInvoices = await this.request(body) as IListInvoices
     const pendingInvoices = allInvoices.invoices.filter(i => i.status === 'unpaid')
@@ -67,7 +67,7 @@ export default abstract class ClnBase extends Backend {
     return await Promise.all(finalInvoices)
   }
 
-  protected async toInvoice (invoice: IListedInvoice): Promise<Invoice> {
+  protected async toInvoice (invoice: IListedInvoice): Promise<IInvoice> {
     if (invoice.bolt11 !== null) {
       throw new Error('Invoice is not a bolt11')
     }

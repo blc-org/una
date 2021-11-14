@@ -1,12 +1,12 @@
 import * as EventEmitter from 'events'
-import { ICreateInvoice, Invoice } from '../interfaces'
+import { ICreateInvoice, IInvoice } from '../interfaces'
 
 export default interface IBackend {
   invoiceEmitter: EventEmitter
-  invoicesToWatch: Invoice[]
-  createInvoice: (invoice: ICreateInvoice) => Promise<Invoice>
-  getInvoice: (hash: string) => Promise<Invoice>
+  invoicesToWatch: IInvoice[]
+  createInvoice: (invoice: ICreateInvoice) => Promise<IInvoice>
+  getInvoice: (hash: string) => Promise<IInvoice>
   watchInvoices: () => EventEmitter
   startWatchingInvoices: () => void
-  getPendingInvoices: () => Promise<Invoice[]>
+  getPendingInvoices: () => Promise<IInvoice[]>
 }

@@ -1,6 +1,6 @@
-import { EInvoiceStatus } from '..'
+import { EInvoiceStatus } from '../..'
 
-export default interface Invoice {
+export default interface IInvoice {
   bolt11: string
   memo: string
   amount: number
