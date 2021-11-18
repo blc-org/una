@@ -24,7 +24,7 @@ export default class LndRest extends Backend {
       fallback_addr: invoice.fallbackAddress,
       paymentPreimage: invoice.paymentPreimage,
       memo: invoice.description,
-      description_hash: Buffer.from(invoice.descriptionHash, 'hex').toString('base64')
+      description_hash: invoice.descriptionHash !== undefined ? Buffer.from(invoice.descriptionHash, 'hex').toString('base64') : undefined
     }
 
     const body = this.prepareBody(data)
