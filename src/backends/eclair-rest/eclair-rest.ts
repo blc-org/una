@@ -1,7 +1,7 @@
 import * as https from 'https'
 import { request } from '../../http'
 import { Backend, URLToObject, cleanParams } from '..'
-import { ICreateInvoice, IEclairRest, IInvoice } from '../../interfaces'
+import { IEclairRest, ICreateInvoice, IPayInvoice, IInvoice, IInvoicePaid } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { IInvoiceCreated, IInvoiceLookup } from '.'
 import SocksProxyAgent from 'socks-proxy-agent'
@@ -44,6 +44,30 @@ export default class EclairRest extends Backend {
     const response = await this.request(options, body) as IInvoiceLookup
 
     return this.toInvoice(response)
+  }
+
+  public async payInvoice (invoice: IPayInvoice): Promise<IInvoicePaid> {
+    let amountMsat
+    if (invoice.amount !== undefined) {
+      amountMsat = invoice.amount * 1000
+    } else if (invoice.amountMsats !== undefined) {
+      amountMsat = invoice.amountMsats
+    }
+
+    const data = {
+      invoice: invoice.bolt11,
+      amountMsat: amountMsat
+    }
+
+    const body = this.prepareBody(data)
+    const options = this.getRequestOptions(EHttpVerb.POST, '/payinvoice')
+    const response = await this.request(options, body) as string
+
+    const result: IInvoicePaid = {
+      paymentPreimage: response
+    }
+
+    return result
   }
 
   public async getPendingInvoices (): Promise<IInvoice[]> {

@@ -1,7 +1,7 @@
 import { Backend, generateUUID, cleanParams } from '..'
-import { ICreateInvoice, IInvoice } from '../../interfaces'
+import { ICreateInvoice, IPayInvoice, IInvoice, IInvoicePaid } from '../../interfaces'
 import { EInvoiceStatus } from '../../enums'
-import { IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
+import { IPaymentSent, IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
 
 export default abstract class ClnBase extends Backend {
   constructor () {
@@ -34,6 +34,29 @@ export default abstract class ClnBase extends Backend {
     const result = await this.listInvoices(hash)
 
     return await this.toInvoice(result.invoices[0])
+  }
+
+  public async payInvoice (invoice: IPayInvoice): Promise<IInvoicePaid> {
+    let amountMsat
+    if (invoice.amount !== undefined) {
+      amountMsat = invoice.amount * 1000
+    } else if (invoice.amountMsats !== undefined) {
+      amountMsat = invoice.amountMsats
+    }
+
+    const data = {
+      bolt11: invoice.bolt11,
+      msatoshi: amountMsat
+    }
+
+    const body = this.prepareBody('pay', data)
+    const response = await this.request(body) as IPaymentSent
+
+    const result: IInvoicePaid = {
+      paymentPreimage: response.payment_preimage
+    }
+
+    return result
   }
 
   protected async listInvoices (hash?: string): Promise<IListInvoices> {

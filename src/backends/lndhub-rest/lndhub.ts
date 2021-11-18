@@ -1,10 +1,10 @@
 import * as https from 'https'
 import { Backend, watchInvoices, URLToObject } from '..'
-import { ILndHub, ICreateInvoice, IInvoice } from '../../interfaces'
+import { ILndHub, ICreateInvoice, IPayInvoice, IInvoice, IInvoicePaid } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
 import { request } from '../../http'
 import SocksProxyAgent from 'socks-proxy-agent'
-import { IError, IInvoiceCreated, IInvoiceDecoded, ILoginAccess, IUserInvoice } from '.'
+import { IError, IInvoiceCreated, IInvoiceDecoded, ILoginAccess, IPaymentSent, IUserInvoice } from '.'
 
 export default class LndHub extends Backend {
   protected readonly config: ILndHub
@@ -61,6 +61,22 @@ export default class LndHub extends Backend {
     }
 
     return await this.getInvoiceByBolt11(invoice.payment_request)
+  }
+
+  public async payInvoice (invoice: IPayInvoice): Promise<IInvoicePaid> {
+    const data = {
+      invoice: invoice.bolt11
+    }
+
+    const body = this.prepareBody(data)
+    const options = await this.getRequestOptions(EHttpVerb.POST, '/payinvoice')
+    const response = await this.request(options, body) as IPaymentSent
+
+    const result: IInvoicePaid = {
+      paymentPreimage: response.payment_preimage
+    }
+
+    return result
   }
 
   protected async getInvoices (): Promise<IUserInvoice[]> {

@@ -16,8 +16,9 @@ export const request = async (options: https.RequestOptions, data: unknown = nul
 
       res.on('end', () => {
         if (!responseBody.startsWith('{') && !responseBody.startsWith('[')) {
-          return reject(responseBody)
+          return resolve(responseBody)
         }
+
         const parsedBody: { error?: string } = JSON.parse(responseBody)
 
         if (parsedBody.error != null) {
