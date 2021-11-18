@@ -1,8 +1,8 @@
 import * as https from 'https'
 import { Backend, URLToObject, base64ToHex } from '..'
-import { ICreateInvoice, ILndRest, IInvoice } from '../../interfaces'
+import { ILndRest, ICreateInvoice, IPayInvoice, IInvoice, IInvoicePaid } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
-import { ILndInvoice } from '.'
+import { ILndInvoice, IPaymentSent } from '.'
 import { request } from '../../http'
 import SocksProxyAgent from 'socks-proxy-agent'
 
@@ -39,6 +39,30 @@ export default class LndRest extends Backend {
     const response = await this.request(options) as ILndInvoice
 
     return this.toInvoice(response)
+  }
+
+  public async payInvoice (invoice: IPayInvoice): Promise<IInvoicePaid> {
+    let amountMsat
+    if (invoice.amount !== undefined) {
+      amountMsat = invoice.amount * 1000
+    } else if (invoice.amountMsats !== undefined) {
+      amountMsat = invoice.amountMsats
+    }
+
+    const data = {
+      payment_request: invoice.bolt11,
+      amt_msat: amountMsat
+    }
+
+    const body = this.prepareBody(data)
+    const options = this.getRequestOptions(EHttpVerb.POST, '/v1/channels/transactions')
+    const response = await this.request(options, body) as IPaymentSent
+
+    const result: IInvoicePaid = {
+      paymentPreimage: response.payment_preimage
+    }
+
+    return result
   }
 
   public async getPendingInvoices (): Promise<IInvoice[]> {

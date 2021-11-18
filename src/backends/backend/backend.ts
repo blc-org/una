@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { IBackend, watchInvoices } from '..'
-import { ICreateInvoice, IInvoice } from '../../interfaces'
+import { ICreateInvoice, IPayInvoice, IInvoice, IInvoicePaid } from '../../interfaces'
 
 export default abstract class Backend implements IBackend {
   protected abstract readonly config: any
@@ -18,7 +18,7 @@ export default abstract class Backend implements IBackend {
     this.socksProxyUrl = null
   }
 
-  protected setSocksProxyUrl (socksProxyUrl: string | null) {
+  protected setSocksProxyUrl (socksProxyUrl: string | null): void {
     this.socksProxyUrl = socksProxyUrl
   }
 
@@ -36,11 +36,11 @@ export default abstract class Backend implements IBackend {
   public abstract createInvoice (invoice: ICreateInvoice): Promise<IInvoice>
   public abstract getInvoice (hash: string): Promise<IInvoice>
   public abstract getPendingInvoices (): Promise<IInvoice[]>
+  public abstract payInvoice (invoice: IPayInvoice): Promise<IInvoicePaid>
 
   /**
    * Internal methods
    */
-  protected abstract toInvoice (invoice: any): Promise<IInvoice> | IInvoice
   protected toDate (millisecond: number | string): Date {
     return new Date(Number(millisecond) * 1000)
   }

@@ -7,9 +7,9 @@ import {
   ILndHub
 } from './backends'
 
-import { ICreateInvoice } from './methods'
+import { ICreateInvoice, IPayInvoice } from './methods'
 
-import { IInvoice } from './results'
+import { IInvoice, IInvoicePaid } from './results'
 
 export {
   IEclairRest,
@@ -19,5 +19,7 @@ export {
   IClnSocketTcp,
   ILndHub,
   ICreateInvoice,
-  IInvoice
+  IPayInvoice,
+  IInvoice,
+  IInvoicePaid
 }
