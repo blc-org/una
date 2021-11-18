@@ -68,7 +68,7 @@ export default abstract class ClnBase extends Backend {
   }
 
   protected async toInvoice (invoice: IListedInvoice): Promise<IInvoice> {
-    if (invoice.bolt11 !== null) {
+    if (invoice.bolt11 === undefined) {
       throw new Error('Invoice is not a bolt11')
     }
 
@@ -106,7 +106,7 @@ export default abstract class ClnBase extends Backend {
     const body = {
       jsonrpc: '2.0',
       method,
-      cleanedParams,
+      params: cleanedParams,
       id: 0
     }
 
