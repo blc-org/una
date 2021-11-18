@@ -1,35 +1,31 @@
 import * as https from 'https'
-import { IBackend, watchInvoices, URLToObject } from '..'
-import { ICreateInvoice, ILndHub, IInvoice } from '../../interfaces'
+import { Backend, watchInvoices, URLToObject } from '..'
+import { ILndHub, ICreateInvoice, IInvoice } from '../../interfaces'
 import { EHttpVerb, EInvoiceStatus } from '../../enums'
-import { EventEmitter } from 'events'
 import { request } from '../../http'
 import SocksProxyAgent from 'socks-proxy-agent'
 import { IError, IInvoiceCreated, IInvoiceDecoded, ILoginAccess, IUserInvoice } from '.'
 
-export default class LndHub implements IBackend {
-  private readonly client: ILndHub
-  public readonly invoiceEmitter: EventEmitter
-  public readonly invoicesToWatch: IInvoice[]
-  private readonly socksProxyUrl: string | null
+export default class LndHub extends Backend {
+  protected readonly config: ILndHub
   private accessToken: string | undefined
 
   constructor (client: ILndHub, socksProxyUrl: string | null = null) {
-    this.client = client
-    this.invoicesToWatch = []
-    this.invoiceEmitter = new EventEmitter()
-    this.socksProxyUrl = socksProxyUrl
-    if (this.client.uri != null) {
-      const [credentialsToSplit, url] = this.client.uri.split('@')
+    super()
+    this.config = client
+    this.setSocksProxyUrl(socksProxyUrl)
+
+    if (this.config.uri != null) {
+      const [credentialsToSplit, url] = this.config.uri.split('@')
       const credentials = credentialsToSplit.split('//')
       const [login, password] = credentials[1].split(':')
-      this.client.url = url
-      this.client.login = login
-      this.client.password = password
+      this.config.url = url
+      this.config.login = login
+      this.config.password = password
     } else if (client.url !== null && client.login !== null && client.password !== null) {
-      this.client.url = client.url
-      this.client.login = client.login
-      this.client.password = client.password
+      this.config.url = client.url
+      this.config.login = client.login
+      this.config.password = client.password
     }
   }
 
@@ -59,6 +55,7 @@ export default class LndHub implements IBackend {
 
   public async getInvoice (hash: string): Promise<IInvoice> {
     const invoice = (await this.getInvoices()).find(i => i.payment_hash === hash)
+
     if (invoice == null) {
       throw new Error('Invoice not found')
     }
@@ -66,17 +63,13 @@ export default class LndHub implements IBackend {
     return await this.getInvoiceByBolt11(invoice.payment_request)
   }
 
-  private async getInvoices (): Promise<IUserInvoice[]> {
+  protected async getInvoices (): Promise<IUserInvoice[]> {
     const options = await this.getRequestOptions(EHttpVerb.GET, '/getuserinvoices')
     return await request(options) as IUserInvoice[]
   }
 
-  public watchInvoices (): EventEmitter {
-    return this.invoiceEmitter
-  }
-
   public startWatchingInvoices (): void {
-    // TODO: LndHub throw "Too many request" after only few requests. Find a beeter way to delay requests in watchInvoice()
+    // TODO: LndHub throw "Too many request" after only few requests. Find a better way to delay requests in watchInvoice()
     watchInvoices(this, 10000)
   }
 
@@ -89,11 +82,7 @@ export default class LndHub implements IBackend {
     return new Date().getTime() > (invoiceTimestamp + expiry) * 1000
   }
 
-  private toDate (millisecond: string | number): Date {
-    return new Date(Number(millisecond) * 1000)
-  }
-
-  private toInvoice (invoice: IInvoiceDecoded, bolt11: string, isPaid: boolean): IInvoice {
+  protected toInvoice (invoice: IInvoiceDecoded, bolt11: string, isPaid: boolean): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (isPaid) {
@@ -120,7 +109,7 @@ export default class LndHub implements IBackend {
     }
   }
 
-  private toInvoice2 (invoice: IUserInvoice): IInvoice {
+  protected toInvoice2 (invoice: IUserInvoice): IInvoice {
     let status: EInvoiceStatus = EInvoiceStatus.Pending
     let settled = false
     if (invoice.ispaid === true) {
@@ -147,7 +136,7 @@ export default class LndHub implements IBackend {
     }
   }
 
-  private async getRequestOptions (method: EHttpVerb, path: string): Promise<https.RequestOptions> {
+  protected async getRequestOptions (method: EHttpVerb, path: string): Promise<https.RequestOptions> {
     if (this.accessToken === undefined) {
       await this.getAccessToken()
     }
@@ -159,7 +148,7 @@ export default class LndHub implements IBackend {
         'Content-type': 'application/json',
         Authorization: this.accessToken
       },
-      ...URLToObject(this.client.url)
+      ...URLToObject(this.config.url)
     }
 
     if (this.socksProxyUrl !== null) {
@@ -177,7 +166,7 @@ export default class LndHub implements IBackend {
       headers: {
         'Content-type': 'application/json'
       },
-      ...URLToObject(this.client.url)
+      ...URLToObject(this.config.url)
     }
 
     if (this.socksProxyUrl !== null) {
@@ -185,7 +174,7 @@ export default class LndHub implements IBackend {
       options.agent = new SocksProxyAgent.SocksProxyAgent({ hostname: socks.hostname, port: socks.port, protocol: socks.protocol })
     }
 
-    const body = this.prepareBody({ login: this.client.login, password: this.client.password })
+    const body = this.prepareBody({ login: this.config.login, password: this.config.password })
     const response = await request(options, body)
 
     if (response.error !== undefined) {
@@ -196,7 +185,11 @@ export default class LndHub implements IBackend {
     this.accessToken = (response as ILoginAccess).access_token
   }
 
-  private prepareBody (data: unknown): string | undefined {
+  protected prepareBody (data: unknown): string | undefined {
     return data !== null ? JSON.stringify(data) : undefined
+  }
+
+  protected async request (options: https.RequestOptions, body: any = undefined): Promise<any> {
+    return await request(options, body)
   }
 }
