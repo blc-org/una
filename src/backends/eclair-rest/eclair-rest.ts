@@ -64,7 +64,7 @@ export default class EclairRest extends Backend {
     const response = await this.request(options, body) as string
 
     const result: IInvoicePaid = {
-      paymentPreimage: response
+      paymentPreimage: response.replaceAll('"', '')
     }
 
     return result

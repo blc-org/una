@@ -8,12 +8,13 @@ Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LN
  - [x] Create invoice
  - [x] Get invoice
  - [x] Invoice events
+ - [x] Pay invoice
  - More to come
 
 ## Supported backends
  - [x] LND (REST)
  - [x] c-lightning
- - [x] Eclair (REST)
+ - [x] Eclair (REST) (>= v0.6.2)
  - [x] LndHub
  - [ ] LNBits
  - Want another implementation? [Open an issue](https://github.com/Dolu89/una/issues/new)
@@ -80,4 +81,12 @@ const invoice = await unaWrapper.getInvoice(newInvoice.paymentHash)
 unaWrapper.watchInvoices().on('invoice-updated', (invoice: IInvoice) => {
   console.log(invoice)
 })
+
+// Pay invoice
+const invoicePayed: IInvoicePaid = await unaWrapper.payInvoice({ bolt11: 'lnbcrt150u...0nwpszr675' })
+/*
+{
+  paymentPreimage: 'a001bf8364...9fe90b09fd'
+}
+*/
 ```
