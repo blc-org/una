@@ -56,15 +56,19 @@ export default class EclairRest extends Backend {
 
     const data = {
       invoice: invoice.bolt11,
-      amountMsat: amountMsat
+      amountMsat: amountMsat,
+      blocking: true
     }
 
     const body = this.prepareBody(data)
     const options = this.getRequestOptions(EHttpVerb.POST, '/payinvoice')
-    const response = await this.request(options, body) as string
+    const response = await this.request(options, body) as {
+      paymentHash: string
+      paymentPreimage: string
+    }
 
     const result: IInvoicePaid = {
-      paymentPreimage: response.replaceAll('"', '')
+      paymentPreimage: response.paymentPreimage
     }
 
     return result
