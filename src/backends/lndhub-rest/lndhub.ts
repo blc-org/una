@@ -73,7 +73,7 @@ export default class LndHub extends Backend {
     const response = await this.request(options, body) as IPaymentSent
 
     const result: IInvoicePaid = {
-      paymentPreimage: response.payment_preimage
+      paymentPreimage: Buffer.from(response.payment_preimage.data).toString('hex')
     }
 
     return result
