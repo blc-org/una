@@ -59,7 +59,7 @@ export default class LndRest extends Backend {
     const response = await this.request(options, body) as IPaymentSent
 
     const result: IInvoicePaid = {
-      paymentPreimage: response.payment_preimage
+      paymentPreimage: base64ToHex(response.payment_preimage)
     }
 
     return result
