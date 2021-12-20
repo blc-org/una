@@ -34,13 +34,14 @@ export const watchInvoices = (backend: IBackend, intervalMs: number | null = nul
   }, intervalMs ?? 5000)
 }
 
-export const URLToObject = (urlStr: string): any => {
+export const URLToObject = (urlStr: string): { protocol: string, hostname: string, port: string, pathname: string } => {
   const url = new URL(urlStr)
 
   return {
     protocol: url.protocol,
     hostname: url.hostname,
-    port: url.port
+    port: url.port,
+    pathname: url.pathname
   }
 }
 

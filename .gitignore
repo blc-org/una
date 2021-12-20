@@ -1,3 +1,9 @@
 node_modules/
 dist/
 .vscode/
+coverage/
+
+# Testing files
+docker-compose.yml
+test.js
+index.js

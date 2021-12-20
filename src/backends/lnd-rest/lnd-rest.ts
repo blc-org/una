@@ -111,6 +111,11 @@ export default class LndRest extends Backend {
       })
     }
 
+    const urlObject = URLToObject(this.config.url)
+    if (urlObject.pathname !== '/') {
+      path = `${urlObject.pathname}${path}`
+    }
+
     return {
       method,
       path,
@@ -118,7 +123,7 @@ export default class LndRest extends Backend {
       headers: {
         'Grpc-Metadata-macaroon': this.config.hexMacaroon
       },
-      ...URLToObject(this.config.url)
+      ...urlObject
     }
   }
 
