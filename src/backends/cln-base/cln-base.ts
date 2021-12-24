@@ -4,10 +4,6 @@ import { EInvoiceStatus } from '../../enums'
 import { IPaymentSent, IInvoiceDecode, IInvoiceCreated, IListInvoices, IListedInvoice } from '.'
 
 export default abstract class ClnBase extends Backend {
-  constructor () {
-    super()
-  }
-
   public async createInvoice (invoice: ICreateInvoice): Promise<IInvoice> {
     const amountMsat = invoice.amountMsats !== undefined ? invoice.amountMsats : invoice.amount * 1000
     const label = invoice.label !== undefined ? invoice.label : generateUUID()
