@@ -1,5 +1,7 @@
 # UNA - Universal Node API
 
+[![npm version](https://badge.fury.io/js/una-wrapper.svg)](https://badge.fury.io/js/una-wrapper)
+
 Una is a Lightning network node wrapper for LND, c-lightning, Eclair, LndHub, LNBits, more...
 
 🚧 Una is still in development.
