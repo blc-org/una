@@ -53,7 +53,9 @@ export default abstract class ClnBase extends Backend {
     const response = await this.request(body) as IPaymentSent
 
     const result: IInvoicePaid = {
-      paymentPreimage: response.payment_preimage
+      paymentPreimage: response.payment_preimage,
+      feesAmount: 0,
+      feesAmountMsats: 0
     }
 
     return result

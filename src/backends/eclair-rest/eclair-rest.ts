@@ -68,7 +68,9 @@ export default class EclairRest extends Backend {
     }
 
     const result: IInvoicePaid = {
-      paymentPreimage: response.paymentPreimage
+      paymentPreimage: response.paymentPreimage,
+      feesAmount: 0,
+      feesAmountMsats: 0
     }
 
     return result
