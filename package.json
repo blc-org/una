@@ -33,7 +33,7 @@
     "project": "./tsconfig.json"
   },
   "dependencies": {
-    "socks-proxy-agent": "^6.1.1"
+    "socks-proxy-agent": "^6.2.0"
   },
   "files": [
     "dist/"
