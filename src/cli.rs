@@ -1,6 +1,6 @@
 use clap::{Arg, Command};
 use una_core::{
-    node::NodeConfig,
+    node::{NodeConfig, NodeMethods},
     types::{Backend, CreateInvoiceParams},
 };
 
@@ -58,31 +58,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .get_matches();
 
-    let backend = matches.value_of("backend").expect("backend is required");
+    let backend: Backend = matches
+        .value_of("backend")
+        .expect("backend is required")
+        .into();
 
-    let node = match backend {
-        "lnd-rest" => {
-            let url = matches.value_of("url").unwrap_or("https://localhost:8080");
-            let macaroon = matches.value_of("macaroon").expect("macaroon is required");
-            let certificate = matches
-                .value_of("certificate")
-                .expect("certificate is required");
-
-            una_core::node::new(
-                Backend::LndRest,
-                NodeConfig {
-                    url: Some(url.to_string()),
-                    macaroon: Some(macaroon.to_string()),
-                    certificate: Some(certificate.to_string()),
-                },
-            )
-            .unwrap()
-        }
-        _ => {
-            println!("Invalid backend");
-            return Ok(());
-        }
+    let config = NodeConfig {
+        url: matches.value_of("url").map(|s| s.to_string()),
+        macaroon: matches.value_of("macaroon").map(|s| s.to_string()),
+        certificate: matches.value_of("certificate").map(|s| s.to_string()),
     };
+
+    let node = una_core::node::Node::new(backend, config).unwrap();
 
     let (command, command_args) = matches.subcommand().unwrap();
 

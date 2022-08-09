@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::node::{Node, NodeConfig};
+use crate::node::{NodeConfig, NodeMethods};
 use crate::types::{CreateInvoiceParams, NodeInfo};
 
 use super::config::LndRestConfig;
@@ -58,7 +58,7 @@ impl LndRest {
 }
 
 #[async_trait::async_trait]
-impl Node for LndRest {
+impl NodeMethods for LndRest {
     async fn create_invoice(&self, invoice: CreateInvoiceParams) -> Result<String, Error> {
         let url = format!("{}/v1/invoices", self.config.url);
 

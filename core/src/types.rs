@@ -22,6 +22,18 @@ impl Display for Backend {
     }
 }
 
+impl From<&str> for Backend {
+    fn from(s: &str) -> Self {
+        match s {
+            "lnd-rest" => Backend::LndRest,
+            "lnd-grpc" => Backend::LndGrpc,
+            "cln-rest" => Backend::ClnRest,
+            // etc.
+            _ => panic!("Invalid backend"),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateInvoiceParams {
     pub amount: Option<u64>,
