@@ -51,7 +51,7 @@ impl LndRest {
             }
             _ => match response.error_for_status() {
                 Ok(_res) => Ok(_res),
-                Err(err) => Err(Error::ReqwestError(err)),
+                Err(err) => Err(err.into()),
             },
         }
     }

@@ -9,7 +9,7 @@ pub enum Error {
     MissingConfig,
     InvalidBackend,
     UnauthorizedMacaroon,
-    ReqwestError(reqwest::Error),
+    ApiError(String),
     UnknownError(String),
 }
 
@@ -20,7 +20,7 @@ impl Display for Error {
             Error::MissingBackend => String::from("missing backend"),
             Error::MissingConfig => String::from("missing config"),
             Error::UnauthorizedMacaroon => String::from("unauthorized macaroon"),
-            Error::ReqwestError(err) => err.to_string(),
+            Error::ApiError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
         };
 
@@ -30,7 +30,7 @@ impl Display for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
-        Error::ReqwestError(err)
+        Error::ApiError(err.to_string())
     }
 }
 
