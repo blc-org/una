@@ -1,0 +1,15 @@
+[package]
+name = "una-python"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "una"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.16", features = ["extension-module"] }
+pyo3-asyncio = { version = "0.16", features = ["tokio-runtime"] }
+tokio = "1.9"
+pythonize = "0.16.0"
+una-core = { path = "../../core" }
