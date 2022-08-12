@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .subcommand(Command::new("info").about("see information about your node"))
         .subcommand(
-            Command::new("newinvoice")
+            Command::new("createinvoice")
                 .about("create new invoice")
                 .arg(
                     Arg::new("amount")
@@ -78,7 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let info = node.get_info().await.unwrap();
             println!("{:}", serde_json::to_string_pretty(&info).unwrap());
         }
-        "newinvoice" => {
+        "createinvoice" => {
             let args = command_args;
             let amount: u64 = args
                 .value_of("amount")
@@ -92,7 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .create_invoice(CreateInvoiceParams {
                     amount: Some(amount),
                     description: Some(description.unwrap_or("").to_string()),
-                    amount_msats: None,
+                    amount_msat: None,
                     description_hash: None,
                     label: None,
                     expire_in: None,

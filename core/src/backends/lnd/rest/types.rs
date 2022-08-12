@@ -23,9 +23,9 @@ pub struct CreateInvoiceRequest {
 
 impl From<CreateInvoiceParams> for CreateInvoiceRequest {
     fn from(params: CreateInvoiceParams) -> Self {
-        let value_msat = match (params.amount, params.amount_msats) {
+        let value_msat = match (params.amount, params.amount_msat) {
             (Some(amount), _) => amount * 1000,
-            (_, Some(amount_msats)) => amount_msats,
+            (_, Some(amount_msat)) => amount_msat,
             (None, None) => 0,
         };
 

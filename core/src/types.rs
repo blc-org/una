@@ -12,9 +12,9 @@ pub enum Backend {
 impl Display for Backend {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            Backend::LndRest => String::from("lnd-rest"),
-            Backend::LndGrpc => String::from("lnd-grpc"),
-            Backend::ClnRest => String::from("cln-rest"),
+            Backend::LndRest => String::from("LndRest"),
+            Backend::LndGrpc => String::from("LndGrpc"),
+            Backend::ClnRest => String::from("ClnRest"),
             // etc.
         };
 
@@ -25,9 +25,9 @@ impl Display for Backend {
 impl From<&str> for Backend {
     fn from(s: &str) -> Self {
         match s {
-            "lnd-rest" => Backend::LndRest,
-            "lnd-grpc" => Backend::LndGrpc,
-            "cln-rest" => Backend::ClnRest,
+            "LndRest" => Backend::LndRest,
+            "LndGrpc" => Backend::LndGrpc,
+            "ClnRest" => Backend::ClnRest,
             // etc.
             _ => panic!("Invalid backend"),
         }
@@ -37,7 +37,7 @@ impl From<&str> for Backend {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateInvoiceParams {
     pub amount: Option<u64>,
-    pub amount_msats: Option<u64>,
+    pub amount_msat: Option<u64>,
     pub description: Option<String>,
     pub description_hash: Option<String>,
     pub label: Option<String>,
