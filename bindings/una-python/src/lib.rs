@@ -27,7 +27,8 @@ impl PyNode {
                     node: Box::new(node),
                 }))))
             }
-            _ => Err(PyValueError::new_err("Invalid backend")),
+            Backend::LndGrpc | Backend::ClnRest => todo!(),
+            Backend::InvalidBackend => Err(PyValueError::new_err("Invalid backend")),
         }
     }
 

@@ -8,11 +8,12 @@ pub struct NodeConfig {
     pub certificate: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Backend {
     LndRest,
     LndGrpc,
     ClnRest,
-    // etc.
+    InvalidBackend,
 }
 
 impl Display for Backend {
@@ -21,7 +22,7 @@ impl Display for Backend {
             Backend::LndRest => String::from("LndRest"),
             Backend::LndGrpc => String::from("LndGrpc"),
             Backend::ClnRest => String::from("ClnRest"),
-            // etc.
+            Backend::InvalidBackend => String::from("InvalidBackend"),
         };
 
         write!(f, "{}", str)
@@ -35,7 +36,7 @@ impl From<&str> for Backend {
             "LndGrpc" => Backend::LndGrpc,
             "ClnRest" => Backend::ClnRest,
             // etc.
-            _ => panic!("Invalid backend"),
+            _ => Backend::InvalidBackend,
         }
     }
 }
