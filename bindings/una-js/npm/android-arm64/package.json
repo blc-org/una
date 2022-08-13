@@ -1,0 +1,18 @@
+{
+  "name": "una-android-arm64",
+  "version": "0.1.0",
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "una.android-arm64.node",
+  "files": [
+    "una.android-arm64.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

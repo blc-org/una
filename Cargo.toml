@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [".", "core","bindings/una-python","schemas"]
+members = [".", "core","bindings/una-python","bindings/una-js","schemas"]
 
 [[bin]]
 name = "una-cli"
@@ -16,3 +16,6 @@ serde_json = { version = "1.0" }
 clap = { version = "3.0", features = [ "derive", "env" ] }
 tokio = { version = "1", features = ["full"] }
 una-core = { path = "core" }
+
+[profile.release]
+lto = true
