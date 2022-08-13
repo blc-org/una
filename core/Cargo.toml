@@ -11,3 +11,4 @@ hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1.57"
 hex = "0.4"
+schemars = "0.8.10"

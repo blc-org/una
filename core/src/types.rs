@@ -1,14 +1,15 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema)]
 pub struct NodeConfig {
     pub url: Option<String>,
     pub macaroon: Option<String>,
     pub certificate: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub enum Backend {
     LndRest,
     LndGrpc,
@@ -41,7 +42,7 @@ impl From<&str> for Backend {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CreateInvoiceParams {
     pub amount: Option<u64>,
     pub amount_msat: Option<u64>,
@@ -54,7 +55,7 @@ pub struct CreateInvoiceParams {
     pub cltv_expiry: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Invoice {
     pub bolt11: String,
     pub memo: String,
@@ -69,7 +70,7 @@ pub struct Invoice {
     pub status: InvoiceStatus,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub enum InvoiceStatus {
     Pending,
     Settled,
@@ -77,14 +78,14 @@ pub enum InvoiceStatus {
     Accepted,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ChannelStats {
     pub active: i64,
     pub inactive: i64,
     pub pending: i64,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct NodeInfo {
     pub backend: Backend,
     pub version: String,
