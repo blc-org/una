@@ -1,3 +1,5 @@
+#![allow(clippy::from_over_into)]
+
 use std::collections::HashMap;
 
 use crate::types::*;

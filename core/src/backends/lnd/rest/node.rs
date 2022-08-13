@@ -1,6 +1,6 @@
 use crate::error::Error;
-use crate::node::{NodeConfig, NodeMethods};
-use crate::types::{CreateInvoiceParams, NodeInfo};
+use crate::node::NodeMethods;
+use crate::types::{CreateInvoiceParams, NodeConfig, NodeInfo};
 
 use super::config::LndRestConfig;
 use super::types::{ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse};

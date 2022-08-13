@@ -1,15 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
-use crate::types::{Backend, CreateInvoiceParams, NodeInfo};
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NodeConfig {
-    pub url: Option<String>,
-    pub macaroon: Option<String>,
-    pub certificate: Option<String>,
-}
+use crate::types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo};
 
 #[async_trait::async_trait]
 pub trait NodeMethods {

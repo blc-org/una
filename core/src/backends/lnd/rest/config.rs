@@ -1,4 +1,4 @@
-use crate::node::NodeConfig;
+use crate::types::NodeConfig;
 
 #[derive(Clone, Debug)]
 pub struct LndRestConfig {

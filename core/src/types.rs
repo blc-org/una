@@ -1,7 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NodeConfig {
+    pub url: Option<String>,
+    pub macaroon: Option<String>,
+    pub certificate: Option<String>,
+}
+
 pub enum Backend {
     LndRest,
     LndGrpc,

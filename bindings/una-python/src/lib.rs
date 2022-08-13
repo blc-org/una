@@ -5,8 +5,8 @@ use tokio::sync::Mutex;
 
 use una_core::{
     backends::lnd::rest::node::LndRest,
-    node::{Node, NodeConfig, NodeMethods},
-    types::{Backend, CreateInvoiceParams, NodeInfo},
+    node::{Node, NodeMethods},
+    types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
 };
 
 #[pyclass(name = "Node")]

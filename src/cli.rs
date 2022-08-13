@@ -1,7 +1,7 @@
 use clap::{Arg, Command};
 use una_core::{
-    node::{NodeConfig, NodeMethods},
-    types::{Backend, CreateInvoiceParams},
+    node::NodeMethods,
+    types::{Backend, CreateInvoiceParams, NodeConfig},
 };
 
 #[tokio::main]
