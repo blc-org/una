@@ -61,7 +61,13 @@ pub struct CreateInvoiceParams {
     pub expire_in: Option<i32>,
     pub fallback_address: Option<String>,
     pub payment_preimage: Option<String>,
-    pub cltv_expiry: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct CreateInvoiceResult {
+    pub payment_request: String,
+    pub payment_hash: String,
+    pub label: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]

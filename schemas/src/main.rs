@@ -1,7 +1,9 @@
 use schemars::{schema::RootSchema, schema_for};
 use std::env;
 
-use una_core::types::{Backend, ChannelStats, CreateInvoiceParams, Network, NodeConfig, NodeInfo};
+use una_core::types::{
+    Backend, ChannelStats, CreateInvoiceParams, CreateInvoiceResult, Network, NodeConfig, NodeInfo,
+};
 
 fn write_schema(dir: &std::path::Path, name: &str, schema: &RootSchema) -> std::io::Result<()> {
     let output = serde_json::to_string_pretty(schema).unwrap();
@@ -35,6 +37,9 @@ fn main() {
 
     let schema = schema_for!(CreateInvoiceParams);
     write_schema(&dir, "create_invoice_params", &schema).unwrap();
+
+    let schema = schema_for!(CreateInvoiceResult);
+    write_schema(&dir, "create_invoice_result", &schema).unwrap();
 
     println!("Wrote schemas to {}", dir.to_string_lossy());
 }

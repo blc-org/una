@@ -1,10 +1,13 @@
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
-use crate::types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo};
+use crate::types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
 
 #[async_trait::async_trait]
 pub trait NodeMethods {
-    async fn create_invoice(&self, invoice: CreateInvoiceParams) -> Result<String, Error>;
+    async fn create_invoice(
+        &self,
+        invoice: CreateInvoiceParams,
+    ) -> Result<CreateInvoiceResult, Error>;
     async fn get_info(&self) -> Result<NodeInfo, Error>;
 }
 
@@ -30,7 +33,10 @@ impl Node {
 
 #[async_trait::async_trait]
 impl NodeMethods for Node {
-    async fn create_invoice(&self, invoice: CreateInvoiceParams) -> Result<String, Error> {
+    async fn create_invoice(
+        &self,
+        invoice: CreateInvoiceParams,
+    ) -> Result<CreateInvoiceResult, Error> {
         self.node.create_invoice(invoice).await
     }
 

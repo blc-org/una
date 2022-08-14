@@ -6,7 +6,7 @@
 export type JsNode = Node
 export class Node {
   constructor(backend: Backend, config: NodeConfig)
-  createInvoice(invoice: CreateInvoiceParams): string
+  createInvoice(invoice: CreateInvoiceParams): CreateInvoiceResult
   getInfo(): NodeInfo
 }
 
@@ -28,6 +28,12 @@ export interface CreateInvoiceParams {
   fallback_address?: string | null;
   label?: string | null;
   payment_preimage?: string | null;
+}
+
+export interface CreateInvoiceResult {
+  label?: string | null;
+  payment_hash: string;
+  payment_request: string;
 }
 
 export type Network =

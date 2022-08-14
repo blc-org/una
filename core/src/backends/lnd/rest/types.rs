@@ -51,6 +51,16 @@ pub struct CreateInvoiceResponse {
     pub payment_addr: String,
 }
 
+impl Into<CreateInvoiceResult> for CreateInvoiceResponse {
+    fn into(self) -> CreateInvoiceResult {
+        CreateInvoiceResult {
+            payment_request: self.payment_request,
+            payment_hash: self.r_hash,
+            label: None,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct GetInfoResponse {
     pub version: String,

@@ -6,7 +6,7 @@ use tokio::sync::Mutex;
 use una_core::{
     backends::lnd::rest::node::LndRest,
     node::{Node, NodeMethods},
-    types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
+    types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo},
 };
 
 #[pyclass(name = "Node")]
@@ -40,7 +40,8 @@ impl PyNode {
 
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let result = node.lock().await.create_invoice(invoice).await.unwrap();
-            let result = Python::with_gil(|py| pythonize::<String>(py, &result).unwrap());
+            let result =
+                Python::with_gil(|py| pythonize::<CreateInvoiceResult>(py, &result).unwrap());
             Ok(result)
         })
     }

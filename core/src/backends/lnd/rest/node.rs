@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, NodeConfig, NodeInfo};
+use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
 
 use super::config::LndRestConfig;
 use super::types::{ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse};
@@ -59,7 +59,10 @@ impl LndRest {
 
 #[async_trait::async_trait]
 impl NodeMethods for LndRest {
-    async fn create_invoice(&self, invoice: CreateInvoiceParams) -> Result<String, Error> {
+    async fn create_invoice(
+        &self,
+        invoice: CreateInvoiceParams,
+    ) -> Result<CreateInvoiceResult, Error> {
         let url = format!("{}/v1/invoices", self.config.url);
 
         let request: CreateInvoiceRequest = invoice.into();
@@ -69,7 +72,7 @@ impl NodeMethods for LndRest {
 
         let data: CreateInvoiceResponse = response.json().await?;
 
-        Ok(data.payment_request)
+        Ok(data.into())
     }
 
     async fn get_info(&self) -> Result<NodeInfo, Error> {

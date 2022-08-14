@@ -41,7 +41,7 @@ impl JsNode {
 
     #[napi(
         ts_args_type = "invoice: CreateInvoiceParams",
-        ts_return_type = "string"
+        ts_return_type = "CreateInvoiceResult"
     )]
     pub fn create_invoice(&self, env: Env, invoice: JsObject) -> Result<JsObject> {
         let node = self.0.clone();

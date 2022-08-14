@@ -103,7 +103,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .await
                 .unwrap();
 
-            println!("{:}", invoice);
+            println!("{:}", serde_json::to_string_pretty(&invoice).unwrap());
         }
         _ => {
             println!("invalid command. use una-cli --help to see usage instructions.")
