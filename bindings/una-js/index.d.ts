@@ -6,8 +6,8 @@
 export type JsNode = Node
 export class Node {
   constructor(backend: Backend, config: NodeConfig)
-  createInvoice(invoice: CreateInvoiceParams): CreateInvoiceResult
-  getInfo(): NodeInfo
+  createInvoice(invoice: CreateInvoiceParams): Promise<CreateInvoiceResult>
+  getInfo(): Promise<NodeInfo>
 }
 
 export type Backend = "LndRest" | "LndGrpc" | "ClnRest" | "InvalidBackend";

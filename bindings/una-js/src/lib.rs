@@ -41,7 +41,7 @@ impl JsNode {
 
     #[napi(
         ts_args_type = "invoice: CreateInvoiceParams",
-        ts_return_type = "CreateInvoiceResult"
+        ts_return_type = "Promise<CreateInvoiceResult>"
     )]
     pub fn create_invoice(&self, env: Env, invoice: JsObject) -> Result<JsObject> {
         let node = self.0.clone();
@@ -57,7 +57,7 @@ impl JsNode {
         )
     }
 
-    #[napi(ts_return_type = "NodeInfo")]
+    #[napi(ts_return_type = "Promise<NodeInfo>")]
     pub fn get_info(&self, env: Env) -> Result<JsObject> {
         let node = self.0.clone();
 
