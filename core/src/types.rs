@@ -17,6 +17,15 @@ pub enum Backend {
     InvalidBackend,
 }
 
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum Network {
+    Mainnet,
+    Testnet,
+    Regtest,
+    Unknown(String),
+}
+
 impl Display for Backend {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
@@ -89,7 +98,7 @@ pub struct ChannelStats {
 pub struct NodeInfo {
     pub backend: Backend,
     pub version: String,
-    pub testnet: bool,
+    pub network: Network,
     pub node_pubkey: String,
     pub channels: ChannelStats,
 }

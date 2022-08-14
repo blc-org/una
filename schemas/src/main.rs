@@ -1,7 +1,7 @@
 use schemars::{schema::RootSchema, schema_for};
 use std::env;
 
-use una_core::types::{Backend, ChannelStats, CreateInvoiceParams, NodeConfig, NodeInfo};
+use una_core::types::{Backend, ChannelStats, CreateInvoiceParams, Network, NodeConfig, NodeInfo};
 
 fn write_schema(dir: &std::path::Path, name: &str, schema: &RootSchema) -> std::io::Result<()> {
     let output = serde_json::to_string_pretty(schema).unwrap();
@@ -20,6 +20,9 @@ fn main() {
 
     let schema = schema_for!(Backend);
     write_schema(&dir, "backend", &schema).unwrap();
+
+    let schema = schema_for!(Network);
+    write_schema(&dir, "network", &schema).unwrap();
 
     let schema = schema_for!(NodeConfig);
     write_schema(&dir, "node_config", &schema).unwrap();

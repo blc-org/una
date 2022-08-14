@@ -30,8 +30,13 @@ export interface CreateInvoiceParams {
   payment_preimage?: string | null;
 }
 
+export type Network =
+  | ("mainnet" | "testnet" | "regtest")
+  | {
+      unknown: string;
+    };
+
 export interface NodeConfig {
-  certificate?: string | null;
   macaroon?: string | null;
   url?: string | null;
 }
@@ -39,7 +44,7 @@ export interface NodeConfig {
 export interface NodeInfo {
   backend: Backend;
   channels: ChannelStats;
+  network: Network;
   node_pubkey: string;
-  testnet: boolean;
   version: string;
 }

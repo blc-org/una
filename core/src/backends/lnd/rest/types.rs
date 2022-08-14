@@ -89,10 +89,20 @@ pub struct Feature {
 
 impl Into<NodeInfo> for GetInfoResponse {
     fn into(self) -> NodeInfo {
+        let network = match self.chains.get(0) {
+            Some(chain) => match chain.network.as_ref() {
+                "mainnet" => Network::Mainnet,
+                "testnet" => Network::Testnet,
+                "regtest" => Network::Regtest,
+                _ => Network::Unknown(chain.network.clone()),
+            },
+            None => Network::Unknown("Unknown".to_string()),
+        };
+
         NodeInfo {
             backend: Backend::LndRest,
             version: self.version,
-            testnet: self.testnet,
+            network,
             node_pubkey: self.identity_pubkey,
             channels: ChannelStats {
                 active: self.num_active_channels,
