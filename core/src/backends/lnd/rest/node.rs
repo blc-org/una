@@ -14,8 +14,8 @@ impl LndRest {
     pub fn new(config: NodeConfig) -> Result<Self, Error> {
         let config: LndRestConfig = config.into();
 
-        let certificate =
-            reqwest::Certificate::from_pem(&hex::decode(config.certificate.clone()).unwrap())
+        let tls_certificate =
+            reqwest::Certificate::from_pem(&hex::decode(config.tls_certificate.clone()).unwrap())
                 .unwrap();
 
         let mut headers = reqwest::header::HeaderMap::new();
@@ -27,7 +27,7 @@ impl LndRest {
         Ok(LndRest {
             config,
             client: reqwest::Client::builder()
-                .add_root_certificate(certificate)
+                .add_root_certificate(tls_certificate)
                 .default_headers(headers)
                 .build()
                 .unwrap(),

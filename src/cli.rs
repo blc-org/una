@@ -14,30 +14,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("backend")
                 .short('b')
                 .long("backend")
-                .value_parser(["lnd-rest"])
+                .value_parser(["LndRest", "ClnGrpc"])
                 .help("Specifies the node backend")
                 .takes_value(true),
         )
         .arg(
             Arg::new("url")
                 .long("url")
-                .help("[lnd-rest] Sets the node URL")
+                .help("[LndRest,ClnGrpc] Sets the node URL")
                 .takes_value(true)
-                .requires_if("lnd-rest", "backend"),
+                .requires_if("LndRest", "backend")
+                .requires_if("ClnGrpc", "backend"),
         )
         .arg(
             Arg::new("macaroon")
                 .long("macaroon")
-                .help("[lnd-rest] Sets the node macaroon")
+                .help("[LndRest] Sets the node macaroon")
                 .takes_value(true)
-                .requires_if("lnd-rest", "backend"),
+                .requires_if("LndRest", "backend"),
         )
         .arg(
-            Arg::new("certificate")
-                .long("certificate")
-                .help("[lnd-rest] Sets the node self-signed TLS certificate")
+            Arg::new("tls_certificate")
+                .long("tls_certificate")
+                .help("[LndRest,ClnGrpc] Sets the node self-signed TLS certificate")
                 .takes_value(true)
-                .requires_if("lnd-rest", "backend"),
+                .requires_if("LndRest", "backend")
+                .requires_if("ClnGrpc", "backend"),
+        )
+        .arg(
+            Arg::new("tls_client_certificate")
+                .long("tls_client_certificate")
+                .help("[ClnGrpc] Sets the client identity TLS certificate")
+                .takes_value(true)
+                .requires_if("ClnGrpc", "backend"),
+        )
+        .arg(
+            Arg::new("tls_client_key")
+                .long("tls_client_key")
+                .help("[ClnGrpc] Sets the client identity TLS key")
+                .takes_value(true)
+                .requires_if("ClnGrpc", "backend"),
         )
         .subcommand(Command::new("info").about("see information about your node"))
         .subcommand(
@@ -66,7 +82,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = NodeConfig {
         url: matches.value_of("url").map(|s| s.to_string()),
         macaroon: matches.value_of("macaroon").map(|s| s.to_string()),
-        certificate: matches.value_of("certificate").map(|s| s.to_string()),
+        tls_certificate: matches.value_of("tls_certificate").map(|s| s.to_string()),
+        tls_client_certificate: matches
+            .value_of("tls_client_certificate")
+            .map(|s| s.to_string()),
+        tls_client_key: matches.value_of("tls_client_key").map(|s| s.to_string()),
     };
 
     let node = una_core::node::Node::new(backend, config).unwrap();

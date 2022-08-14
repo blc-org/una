@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use una_core::{
+    backends::cln::grpc::node::ClnGrpc,
     backends::lnd::rest::node::LndRest,
     node::{Node, NodeMethods},
     types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo},
@@ -27,7 +28,14 @@ impl PyNode {
                     node: Box::new(node),
                 }))))
             }
-            Backend::LndGrpc | Backend::ClnRest => todo!(),
+            Backend::ClnGrpc => {
+                let node = ClnGrpc::new(config).unwrap();
+                Ok(Self(Arc::new(Mutex::new(Node {
+                    backend: Backend::ClnGrpc,
+                    node: Box::new(node),
+                }))))
+            }
+            Backend::LndGrpc => todo!(),
             Backend::InvalidBackend => Err(PyValueError::new_err("Invalid backend")),
         }
     }

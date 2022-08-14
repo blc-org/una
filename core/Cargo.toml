@@ -12,3 +12,9 @@ tokio = { version = "1", features = ["full"] }
 async-trait = "0.1.57"
 hex = "0.4"
 schemars = "0.8.10"
+tonic = { version = "0.8.0", features = ["tls"] }
+prost = "0.11"
+cuid = "1.2.0"
+
+[build-dependencies]
+tonic-build = "0.8"

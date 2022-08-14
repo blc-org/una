@@ -4,7 +4,7 @@ use crate::types::NodeConfig;
 pub struct LndRestConfig {
     pub url: String,
     pub macaroon: String,
-    pub certificate: String,
+    pub tls_certificate: String,
 }
 
 impl From<NodeConfig> for LndRestConfig {
@@ -12,7 +12,7 @@ impl From<NodeConfig> for LndRestConfig {
         LndRestConfig {
             url: config.url.unwrap(),
             macaroon: config.macaroon.unwrap(),
-            certificate: config.certificate.unwrap(),
+            tls_certificate: config.tls_certificate.unwrap(),
         }
     }
 }

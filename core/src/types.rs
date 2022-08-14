@@ -6,14 +6,16 @@ use std::fmt::Display;
 pub struct NodeConfig {
     pub url: Option<String>,
     pub macaroon: Option<String>,
-    pub certificate: Option<String>,
+    pub tls_certificate: Option<String>,
+    pub tls_client_key: Option<String>,
+    pub tls_client_certificate: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub enum Backend {
     LndRest,
     LndGrpc,
-    ClnRest,
+    ClnGrpc,
     InvalidBackend,
 }
 
@@ -31,7 +33,7 @@ impl Display for Backend {
         let str = match self {
             Backend::LndRest => String::from("LndRest"),
             Backend::LndGrpc => String::from("LndGrpc"),
-            Backend::ClnRest => String::from("ClnRest"),
+            Backend::ClnGrpc => String::from("ClnGrpc"),
             Backend::InvalidBackend => String::from("InvalidBackend"),
         };
 
@@ -44,7 +46,7 @@ impl From<&str> for Backend {
         match s {
             "LndRest" => Backend::LndRest,
             "LndGrpc" => Backend::LndGrpc,
-            "ClnRest" => Backend::ClnRest,
+            "ClnGrpc" => Backend::ClnGrpc,
             // etc.
             _ => Backend::InvalidBackend,
         }
@@ -58,9 +60,10 @@ pub struct CreateInvoiceParams {
     pub description: Option<String>,
     pub description_hash: Option<String>,
     pub label: Option<String>,
-    pub expire_in: Option<i32>,
+    pub expire_in: Option<u32>,
     pub fallback_address: Option<String>,
     pub payment_preimage: Option<String>,
+    pub cltv_expiry: Option<u32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]

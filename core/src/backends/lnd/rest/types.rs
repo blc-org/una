@@ -36,9 +36,9 @@ impl From<CreateInvoiceParams> for CreateInvoiceRequest {
             r_preimage: params.payment_preimage,
             value_msat,
             description_hash: params.description_hash,
-            expiry: params.expire_in.unwrap_or(3600),
+            expiry: params.expire_in.unwrap_or(3600).try_into().unwrap(),
             fallback_addr: params.fallback_address,
-            cltv_expiry: params.cltv_expiry,
+            cltv_expiry: params.cltv_expiry.map(|cltv_expiry| cltv_expiry as i32),
         }
     }
 }

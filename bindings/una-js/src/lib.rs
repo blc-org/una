@@ -8,7 +8,7 @@ use napi::{bindgen_prelude::*, Env, Error, JsObject, Result};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use una_core::{
-    backends::lnd::rest::node::LndRest,
+    backends::{cln::grpc::node::ClnGrpc, lnd::rest::node::LndRest},
     node::{Node, NodeMethods},
     types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
 };
@@ -23,20 +23,29 @@ impl JsNode {
         let backend: Backend = backend.as_str().into();
         let config: NodeConfig = env.from_js_value(config)?;
 
-        match backend {
+        let node = match backend {
             Backend::LndRest => {
                 let node = LndRest::new(config).unwrap();
-                Ok(Self(Arc::new(Mutex::new(Node {
+                Ok(Node {
                     backend,
                     node: Box::new(node),
-                }))))
+                })
             }
-            Backend::LndGrpc | Backend::ClnRest => todo!(),
+            Backend::ClnGrpc => {
+                let node = ClnGrpc::new(config).unwrap();
+                Ok(Node {
+                    backend,
+                    node: Box::new(node),
+                })
+            }
+            Backend::LndGrpc => todo!(),
             Backend::InvalidBackend => Err(Error::new(
                 Status::InvalidArg,
                 "Invalid backend".to_string(),
             )),
-        }
+        };
+
+        Ok(Self(Arc::new(Mutex::new(node.unwrap()))))
     }
 
     #[napi(

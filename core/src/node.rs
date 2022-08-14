@@ -1,3 +1,4 @@
+use crate::backends::cln::grpc::node::ClnGrpc;
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
 use crate::types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
@@ -21,6 +22,13 @@ impl Node {
         match backend {
             Backend::LndRest => {
                 let node = LndRest::new(config).unwrap();
+                Ok(Node {
+                    backend,
+                    node: Box::new(node),
+                })
+            }
+            Backend::ClnGrpc => {
+                let node = ClnGrpc::new(config).unwrap();
                 Ok(Node {
                     backend,
                     node: Box::new(node),
