@@ -1,4 +1,5 @@
 use crate::backends::cln::grpc::node::ClnGrpc;
+use crate::backends::eclair::rest::node::EclairRest;
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
 use crate::types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
@@ -29,6 +30,13 @@ impl Node {
             }
             Backend::ClnGrpc => {
                 let node = ClnGrpc::new(config).unwrap();
+                Ok(Node {
+                    backend,
+                    node: Box::new(node),
+                })
+            }
+            Backend::EclairRest => {
+                let node = EclairRest::new(config).unwrap();
                 Ok(Node {
                     backend,
                     node: Box::new(node),

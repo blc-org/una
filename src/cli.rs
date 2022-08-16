@@ -14,17 +14,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::new("backend")
                 .short('b')
                 .long("backend")
-                .value_parser(["LndRest", "ClnGrpc"])
+                .value_parser(["LndRest", "ClnGrpc", "EclairRest"])
                 .help("Specifies the node backend")
                 .takes_value(true),
         )
         .arg(
             Arg::new("url")
                 .long("url")
-                .help("[LndRest,ClnGrpc] Sets the node URL")
+                .help("[LndRest,ClnGrpc,EclairRest] Sets the node URL")
                 .takes_value(true)
                 .requires_if("LndRest", "backend")
-                .requires_if("ClnGrpc", "backend"),
+                .requires_if("ClnGrpc", "backend")
+                .requires_if("EclairRest", "backend"),
         )
         .arg(
             Arg::new("macaroon")
@@ -54,6 +55,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("[ClnGrpc] Sets the client identity TLS key")
                 .takes_value(true)
                 .requires_if("ClnGrpc", "backend"),
+        )
+        .arg(
+            Arg::new("username")
+                .long("username")
+                .help("[EclairRest] Sets the node username")
+                .takes_value(true)
+                .requires_if("EclairRest", "backend"),
+        )
+        .arg(
+            Arg::new("password")
+                .long("password")
+                .help("[EclairRest] Sets the node username")
+                .takes_value(true)
+                .requires_if("EclairRest", "backend"),
         )
         .subcommand(Command::new("info").about("see information about your node"))
         .subcommand(
@@ -87,6 +102,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .value_of("tls_client_certificate")
             .map(|s| s.to_string()),
         tls_client_key: matches.value_of("tls_client_key").map(|s| s.to_string()),
+        username: matches.value_of("username").map(|s| s.to_string()),
+        password: matches.value_of("password").map(|s| s.to_string()),
     };
 
     let node = una_core::node::Node::new(backend, config).unwrap();

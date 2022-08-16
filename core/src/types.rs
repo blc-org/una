@@ -9,6 +9,8 @@ pub struct NodeConfig {
     pub tls_certificate: Option<String>,
     pub tls_client_key: Option<String>,
     pub tls_client_certificate: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
@@ -16,6 +18,7 @@ pub enum Backend {
     LndRest,
     LndGrpc,
     ClnGrpc,
+    EclairRest,
     InvalidBackend,
 }
 
@@ -34,6 +37,7 @@ impl Display for Backend {
             Backend::LndRest => String::from("LndRest"),
             Backend::LndGrpc => String::from("LndGrpc"),
             Backend::ClnGrpc => String::from("ClnGrpc"),
+            Backend::EclairRest => String::from("EclairRest"),
             Backend::InvalidBackend => String::from("InvalidBackend"),
         };
 
@@ -47,6 +51,7 @@ impl From<&str> for Backend {
             "LndRest" => Backend::LndRest,
             "LndGrpc" => Backend::LndGrpc,
             "ClnGrpc" => Backend::ClnGrpc,
+            "EclairRest" => Backend::EclairRest,
             // etc.
             _ => Backend::InvalidBackend,
         }
