@@ -38,6 +38,13 @@ impl JsNode {
                     node: Box::new(node),
                 })
             }
+            Backend::EclairRest => {
+                let node = ClnGrpc::new(config.try_into().unwrap()).unwrap();
+                Ok(Node {
+                    backend,
+                    node: Box::new(node),
+                })
+            }
             Backend::LndGrpc => todo!(),
             Backend::InvalidBackend => Err(Error::new(
                 Status::InvalidArg,
