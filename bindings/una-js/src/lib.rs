@@ -8,7 +8,9 @@ use napi::{bindgen_prelude::*, Env, Error, JsObject, Result};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use una_core::{
-    backends::{cln::grpc::node::ClnGrpc, lnd::rest::node::LndRest},
+    backends::{
+        cln::grpc::node::ClnGrpc, eclair::rest::node::EclairRest, lnd::rest::node::LndRest,
+    },
     node::{Node, NodeMethods},
     types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
 };
@@ -39,7 +41,7 @@ impl JsNode {
                 })
             }
             Backend::EclairRest => {
-                let node = ClnGrpc::new(config.try_into().unwrap()).unwrap();
+                let node = EclairRest::new(config.try_into().unwrap()).unwrap();
                 Ok(Node {
                     backend,
                     node: Box::new(node),
