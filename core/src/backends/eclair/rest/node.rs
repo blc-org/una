@@ -56,14 +56,13 @@ impl EclairRest {
     }
 }
 
-fn is_channel_active(n: &GetChannelsResponse) -> bool {
-    matches!((*n).state, ChannelState::Normal)
-}
-fn is_channel_inactive(n: &GetChannelsResponse) -> bool {
-    matches!((*n).state, ChannelState::Offline)
-}
-fn is_channel_pending(n: &GetChannelsResponse) -> bool {
-    matches!((*n).state, ChannelState::Pending)
+fn is_channel_in_state(n: &GetChannelsResponse, state: ChannelState) -> bool {
+    match state {
+        ChannelState::Normal => matches!((*n).state, ChannelState::Normal),
+        ChannelState::Pending => matches!((*n).state, ChannelState::Pending),
+        ChannelState::Offline => matches!((*n).state, ChannelState::Offline),
+        _ => false,
+    }
 }
 
 #[async_trait::async_trait]
@@ -100,15 +99,15 @@ impl NodeMethods for EclairRest {
 
         node_info.channels.active = data_channels
             .iter()
-            .filter(|&n| is_channel_active(n))
+            .filter(|n| is_channel_in_state(n, ChannelState::Normal))
             .count() as i64;
         node_info.channels.inactive = data_channels
             .iter()
-            .filter(|&n| is_channel_inactive(n))
+            .filter(|n| is_channel_in_state(n, ChannelState::Offline))
             .count() as i64;
         node_info.channels.pending = data_channels
             .iter()
-            .filter(|&n| is_channel_pending(n))
+            .filter(|n| is_channel_in_state(n, ChannelState::Pending))
             .count() as i64;
 
         Ok(node_info)
