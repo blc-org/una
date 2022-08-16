@@ -29,7 +29,7 @@ impl Node {
                 })
             }
             Backend::ClnGrpc => {
-                let node = ClnGrpc::new(config).unwrap();
+                let node = ClnGrpc::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
