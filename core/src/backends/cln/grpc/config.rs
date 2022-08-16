@@ -25,12 +25,9 @@ impl TryFrom<NodeConfig> for ClnGrpcConfig {
         let tls_client_key = config
             .tls_client_key
             .ok_or_else(|| ConfigError::MissingField("tls_client_key".to_string()))?;
-        let tls_client_certificate =
-            config
-                .tls_client_certificate
-                .ok_or_else(|| ConfigError::MissingField(
-                    "tls_client_certificate".to_string(),
-                ))?;
+        let tls_client_certificate = config
+            .tls_client_certificate
+            .ok_or_else(|| ConfigError::MissingField("tls_client_certificate".to_string()))?;
 
         // Verify URL
         Uri::from_maybe_shared(url.clone())

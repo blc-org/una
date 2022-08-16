@@ -36,7 +36,7 @@ impl Node {
                 })
             }
             Backend::EclairRest => {
-                let node = EclairRest::new(config).unwrap();
+                let node = EclairRest::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
