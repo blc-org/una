@@ -53,9 +53,21 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<tonic::transport::Error> for Error {
+    fn from(err: tonic::transport::Error) -> Self {
+        Error::ApiError(err.to_string())
+    }
+}
+
 impl From<reqwest::header::InvalidHeaderValue> for Error {
     fn from(err: reqwest::header::InvalidHeaderValue) -> Self {
         Error::ApiError(err.to_string())
+    }
+}
+
+impl From<tonic::Status> for Error {
+    fn from(status: tonic::Status) -> Self {
+        Error::ApiError(status.message().to_string())
     }
 }
 

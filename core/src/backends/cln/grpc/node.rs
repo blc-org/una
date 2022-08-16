@@ -2,7 +2,7 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
+use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
 
 use super::config::ClnGrpcConfig;
 use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest};
@@ -12,15 +12,11 @@ pub struct ClnGrpc {
 }
 
 impl ClnGrpc {
-    pub fn new(config: NodeConfig) -> Result<Self, Error> {
-        let config: ClnGrpcConfig = config.into();
+    pub fn new(config: ClnGrpcConfig) -> Result<Self, Error> {
+        let tls_certificate = Certificate::from_pem(&config.tls_certificate);
 
-        let client_identity = Identity::from_pem(
-            &hex::decode(config.tls_client_certificate).unwrap(),
-            &hex::decode(config.tls_client_key).unwrap(),
-        );
-
-        let tls_certificate = Certificate::from_pem(&hex::decode(config.tls_certificate).unwrap());
+        let client_identity =
+            Identity::from_pem(&config.tls_client_certificate, &config.tls_client_key);
 
         let tls = ClientTlsConfig::new()
             .domain_name("cln")
@@ -28,9 +24,8 @@ impl ClnGrpc {
             .identity(client_identity);
 
         let endpoint = Channel::from_shared(config.url)
-            .unwrap()
-            .tls_config(tls)
-            .unwrap();
+            .expect("Already verified URL failed parsing")
+            .tls_config(tls)?;
 
         Ok(ClnGrpc { endpoint })
     }
@@ -38,19 +33,19 @@ impl ClnGrpc {
     // This is a temporary workaround, as we should spawn a unique channel for all
     // requests, but I'm not yet experienced enough with Rust to find a proper way
     // to do it.
-    async fn get_client(&self) -> NodeClient<Channel> {
-        let channel = self.endpoint.connect().await.unwrap();
-        NodeClient::new(channel)
+    async fn get_client(&self) -> Result<NodeClient<Channel>, Error> {
+        let channel = self.endpoint.connect().await?;
+        Ok(NodeClient::new(channel))
     }
 }
 
 #[async_trait::async_trait]
 impl NodeMethods for ClnGrpc {
     async fn get_info(&self) -> Result<NodeInfo, Error> {
-        let mut client = self.get_client().await;
+        let mut client = self.get_client().await?;
 
         let request = GetinfoRequest {};
-        let response = client.getinfo(request).await.unwrap().into_inner();
+        let response = client.getinfo(request).await?.into_inner();
 
         Ok(response.into())
     }
@@ -59,11 +54,11 @@ impl NodeMethods for ClnGrpc {
         &self,
         invoice: CreateInvoiceParams,
     ) -> Result<CreateInvoiceResult, Error> {
-        let mut client = self.get_client().await;
+        let mut client = self.get_client().await?;
 
         let request: InvoiceRequest = invoice.into();
         let label = request.label.clone();
-        let response = client.invoice(request).await.unwrap().into_inner();
+        let response = client.invoice(request).await?.into_inner();
 
         let mut result: CreateInvoiceResult = response.into();
         result.label = Some(label);

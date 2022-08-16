@@ -30,7 +30,7 @@ impl PyNode {
                 }))))
             }
             Backend::ClnGrpc => {
-                let node = ClnGrpc::new(config).unwrap();
+                let node = ClnGrpc::new(config.try_into().unwrap()).unwrap();
                 Ok(Self(Arc::new(Mutex::new(Node {
                     backend: Backend::ClnGrpc,
                     node: Box::new(node),
