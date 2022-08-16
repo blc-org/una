@@ -22,7 +22,7 @@ impl PyNode {
 
         match backend {
             Backend::LndRest => {
-                let node = LndRest::new(config).unwrap();
+                let node = LndRest::new(config.try_into().unwrap()).unwrap();
                 Ok(Self(Arc::new(Mutex::new(Node {
                     backend: Backend::LndRest,
                     node: Box::new(node),

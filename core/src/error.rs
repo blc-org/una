@@ -4,11 +4,30 @@ use std::{
 };
 
 #[derive(Debug)]
+pub enum ConfigError {
+    MissingField(String),
+    InvalidField(String),
+    ParsingHexError(String),
+}
+
+impl Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ConfigError::MissingField(field) => write!(f, "Missing field: {}", field),
+            ConfigError::InvalidField(field) => write!(f, "Invalid field: {}", field),
+            ConfigError::ParsingHexError(field) => {
+                write!(f, "Error parsing field {}: expected hex string", field)
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum Error {
     MissingBackend,
-    MissingConfig,
     InvalidBackend,
     UnauthorizedMacaroon,
+    ConfigError(ConfigError),
     ApiError(String),
     UnknownError(String),
 }
@@ -18,8 +37,8 @@ impl Display for Error {
         let str = match self {
             Error::InvalidBackend => String::from("invalid backend"),
             Error::MissingBackend => String::from("missing backend"),
-            Error::MissingConfig => String::from("missing config"),
             Error::UnauthorizedMacaroon => String::from("unauthorized macaroon"),
+            Error::ConfigError(err) => err.to_string(),
             Error::ApiError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
         };
@@ -31,6 +50,18 @@ impl Display for Error {
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
         Error::ApiError(err.to_string())
+    }
+}
+
+impl From<reqwest::header::InvalidHeaderValue> for Error {
+    fn from(err: reqwest::header::InvalidHeaderValue) -> Self {
+        Error::ApiError(err.to_string())
+    }
+}
+
+impl From<ConfigError> for Error {
+    fn from(err: ConfigError) -> Self {
+        Error::ConfigError(err)
     }
 }
 

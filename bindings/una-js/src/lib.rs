@@ -25,7 +25,7 @@ impl JsNode {
 
         let node = match backend {
             Backend::LndRest => {
-                let node = LndRest::new(config).unwrap();
+                let node = LndRest::new(config.try_into().unwrap()).unwrap();
                 Ok(Node {
                     backend,
                     node: Box::new(node),
