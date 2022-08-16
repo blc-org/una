@@ -6,6 +6,7 @@ use tokio::sync::Mutex;
 use una_core::{
     backends::cln::grpc::node::ClnGrpc,
     backends::lnd::rest::node::LndRest,
+    backends::eclair::rest::node::EclairRest,
     node::{Node, NodeMethods},
     types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo},
 };
@@ -32,6 +33,13 @@ impl PyNode {
                 let node = ClnGrpc::new(config.try_into().unwrap()).unwrap();
                 Ok(Self(Arc::new(Mutex::new(Node {
                     backend: Backend::ClnGrpc,
+                    node: Box::new(node),
+                }))))
+            }
+            Backend::EclairRest => {
+                let node = EclairRest::new(config.try_into().unwrap()).unwrap();
+                Ok(Self(Arc::new(Mutex::new(Node {
+                    backend: Backend::EclairRest,
                     node: Box::new(node),
                 }))))
             }
