@@ -22,7 +22,7 @@ impl Node {
     pub fn new(backend: Backend, config: NodeConfig) -> Result<Self, Error> {
         match backend {
             Backend::LndRest => {
-                let node = LndRest::new(config).unwrap();
+                let node = LndRest::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
