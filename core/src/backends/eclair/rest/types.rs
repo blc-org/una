@@ -1,3 +1,5 @@
+#![allow(clippy::from_over_into)]
+
 use crate::types::*;
 use serde::{Deserialize, Serialize};
 

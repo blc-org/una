@@ -1,5 +1,4 @@
-#![allow(clippy::from_over_into, clippy::derive_partial_eq_without_eq)]
-#![allow(clippy::derive_partial_eq_without_eq)] // <-- compiled proto raises a lot of these
+#![allow(clippy::from_over_into)]
 
 use crate::types::*;
 use cuid;
