@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
+use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
 
 use super::config::EclairRestConfig;
 use super::types::{
@@ -14,22 +14,19 @@ pub struct EclairRest {
 }
 
 impl EclairRest {
-    pub fn new(config: NodeConfig) -> Result<Self, Error> {
-        let config: EclairRestConfig = config.into();
-
-        let encoded_auth = format!("{}:{}", config.username, config.password);
-        let auhtorization = format!("Basic {}", base64::encode(encoded_auth));
+    pub fn new(config: EclairRestConfig) -> Result<Self, Error> {
+        let auth = format!("{}:{}", &config.username, &config.password);
+        let authorization = format!("Basic {}", base64::encode(auth));
 
         let mut headers = reqwest::header::HeaderMap::new();
-        let auhtorization_value = reqwest::header::HeaderValue::from_str(&auhtorization).unwrap();
-        headers.insert("Authorization", auhtorization_value);
+        let authorization_value = reqwest::header::HeaderValue::from_str(&authorization)?;
+        headers.insert("Authorization", authorization_value);
 
         Ok(EclairRest {
             config,
             client: reqwest::Client::builder()
                 .default_headers(headers)
-                .build()
-                .unwrap(),
+                .build()?,
         })
     }
 
