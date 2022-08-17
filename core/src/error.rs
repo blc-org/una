@@ -27,9 +27,11 @@ pub enum Error {
     MissingBackend,
     InvalidBackend,
     Unauthorized,
+    NotImplemented,
     ConfigError(ConfigError),
     ApiError(String),
     UnknownError(String),
+    ConversionError(String),
 }
 
 impl Display for Error {
@@ -38,8 +40,10 @@ impl Display for Error {
             Error::InvalidBackend => String::from("invalid backend"),
             Error::MissingBackend => String::from("missing backend"),
             Error::Unauthorized => String::from("unauthorized credentials"),
+            Error::NotImplemented => String::from("not implemented"),
             Error::ConfigError(err) => err.to_string(),
             Error::ApiError(err) => err.clone(),
+            Error::ConversionError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
         };
 
