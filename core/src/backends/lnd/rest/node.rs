@@ -36,10 +36,8 @@ impl LndRest {
             reqwest::StatusCode::INTERNAL_SERVER_ERROR => {
                 let error: ApiError = response.json().await?;
 
-                println!("{:?}", error);
-
                 match error.message.as_str() {
-                    "permission denied" => Err(Error::UnauthorizedMacaroon),
+                    "permission denied" => Err(Error::Unauthorized),
                     _ => Err(Error::UnknownError(error.message)),
                 }
             }

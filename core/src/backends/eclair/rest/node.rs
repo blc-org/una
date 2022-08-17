@@ -4,8 +4,7 @@ use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
 
 use super::config::EclairRestConfig;
 use super::types::{
-    ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
-    GetInfoResponse,
+    ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse, GetInfoResponse,
 };
 
 pub struct EclairRest {
@@ -35,16 +34,7 @@ impl EclairRest {
 
         match status {
             reqwest::StatusCode::OK => Ok(response),
-            reqwest::StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ApiError = response.json().await?;
-
-                println!("{:?}", error);
-
-                match error.message.as_str() {
-                    "permission denied" => Err(Error::UnauthorizedMacaroon),
-                    _ => Err(Error::UnknownError(error.message)),
-                }
-            }
+            reqwest::StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
             _ => match response.error_for_status() {
                 Ok(_res) => Ok(_res),
                 Err(err) => Err(err.into()),

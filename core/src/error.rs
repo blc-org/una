@@ -26,7 +26,7 @@ impl Display for ConfigError {
 pub enum Error {
     MissingBackend,
     InvalidBackend,
-    UnauthorizedMacaroon,
+    Unauthorized,
     ConfigError(ConfigError),
     ApiError(String),
     UnknownError(String),
@@ -37,7 +37,7 @@ impl Display for Error {
         let str = match self {
             Error::InvalidBackend => String::from("invalid backend"),
             Error::MissingBackend => String::from("missing backend"),
-            Error::UnauthorizedMacaroon => String::from("unauthorized macaroon"),
+            Error::Unauthorized => String::from("unauthorized credentials"),
             Error::ConfigError(err) => err.to_string(),
             Error::ApiError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
