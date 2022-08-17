@@ -3,7 +3,7 @@ use crate::backends::eclair::rest::node::EclairRest;
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
 use crate::types::{
-    Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo, PayInvoiceParams,
+    Backend, CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams,
     PayInvoiceResult,
 };
 
@@ -15,6 +15,7 @@ pub trait NodeMethods {
     ) -> Result<CreateInvoiceResult, Error>;
     async fn get_info(&self) -> Result<NodeInfo, Error>;
     async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error>;
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error>;
 }
 
 pub struct Node {
@@ -66,5 +67,9 @@ impl NodeMethods for Node {
 
     async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
         self.node.pay_invoice(invoice).await
+    }
+
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
+        self.node.get_invoice(payment_hash).await
     }
 }

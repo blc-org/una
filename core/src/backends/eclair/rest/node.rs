@@ -1,13 +1,15 @@
+use std::collections::HashMap;
+
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::EclairRestConfig;
 use super::types::{
     ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
-    GetInfoResponse, PayInvoiceRequest, PayInvoiceResponse,
+    GetInfoResponse, PayInvoiceRequest, PayInvoiceResponse, InvoiceResponse,
 };
 
 pub struct EclairRest {
@@ -118,5 +120,20 @@ impl NodeMethods for EclairRest {
         let data: PayInvoiceResponse = response.json().await?;
 
         Ok(data.try_into()?)
+    }
+
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
+        let url = format!("{}/getreceivedinfo", self.config.url);
+
+        println!("{}", payment_hash);
+
+        let mut params = HashMap::new();
+        params.insert("paymentHash", &payment_hash);
+
+        let mut response = self.client.post(&url).form(&params).send().await?;
+        response = Self::on_response(response).await?;
+        let data: InvoiceResponse = response.json().await?;
+
+        Ok(data.into())
     }
 }

@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::LndRestConfig;
@@ -95,5 +95,11 @@ impl NodeMethods for LndRest {
         let data: SendPaymentSyncResponse = response.json().await?;
 
         Ok(data.try_into()?)
+    }
+
+    async fn get_invoice(&self, _payment_hash: String) -> Result<Invoice, Error> {
+        Err(Error::UnknownError(String::from(
+            "get_invoice() not implemented yet",
+        )))
     }
 }

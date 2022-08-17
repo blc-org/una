@@ -3,7 +3,7 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::ClnGrpcConfig;
@@ -66,6 +66,12 @@ impl NodeMethods for ClnGrpc {
         result.label = Some(label);
 
         Ok(result)
+    }
+
+    async fn get_invoice(&self, _payment_hash: String) -> Result<Invoice, Error> {
+        Err(Error::UnknownError(String::from(
+            "get_invoice() not implemented yet",
+        )))
     }
 
     async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
