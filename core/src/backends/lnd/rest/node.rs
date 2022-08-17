@@ -64,7 +64,7 @@ impl NodeMethods for LndRest {
 
         let data: CreateInvoiceResponse = response.json().await?;
 
-        Ok(data.into())
+        Ok(data.try_into()?)
     }
 
     async fn get_info(&self) -> Result<NodeInfo, Error> {
