@@ -10,7 +10,7 @@ export class Node {
   getInfo(): Promise<NodeInfo>
 }
 
-export type Backend = "LndRest" | "LndGrpc" | "ClnGrpc" | "InvalidBackend";
+export type Backend = "LndRest" | "LndGrpc" | "ClnGrpc" | "EclairRest" | "InvalidBackend";
 
 export interface ChannelStats {
   active: number;
@@ -44,10 +44,12 @@ export type Network =
 
 export interface NodeConfig {
   macaroon?: string | null;
+  password?: string | null;
   tls_certificate?: string | null;
   tls_client_certificate?: string | null;
   tls_client_key?: string | null;
   url?: string | null;
+  username?: string | null;
 }
 
 export interface NodeInfo {
