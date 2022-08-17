@@ -1,9 +1,10 @@
 #![allow(clippy::from_over_into)]
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::error::Error;
 use crate::types::*;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -51,13 +52,21 @@ pub struct CreateInvoiceResponse {
     pub payment_addr: String,
 }
 
-impl Into<CreateInvoiceResult> for CreateInvoiceResponse {
-    fn into(self) -> CreateInvoiceResult {
-        CreateInvoiceResult {
+impl TryInto<CreateInvoiceResult> for CreateInvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<CreateInvoiceResult, Self::Error> {
+        let payment_hash = hex::encode(base64::decode(self.r_hash).map_err(|_| {
+            Error::ConversionError(String::from("coudln't convert r_hash from base64 to hex"))
+        })?);
+
+        let result = CreateInvoiceResult {
             payment_request: self.payment_request,
-            payment_hash: self.r_hash,
+            payment_hash,
             label: None,
-        }
+        };
+
+        Ok(result)
     }
 }
 
