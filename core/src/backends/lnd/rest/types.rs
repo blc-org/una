@@ -1,12 +1,13 @@
 #![allow(clippy::from_over_into)]
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::error::Error;
+use crate::tools::convert_base64_to_hex;
 use crate::{types::*, utils};
 
 pub type Base64String = String;
+use crate::{error::Error, tools::parse_number};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -129,6 +130,70 @@ impl Into<NodeInfo> for GetInfoResponse {
                 pending: self.num_pending_channels,
             },
         }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InvoiceResponse {
+    memo: String,
+    r_preimage: String,
+    r_hash: String,
+    value: String,
+    value_msat: String,
+    settled: bool,
+    creation_date: String,
+    settle_date: String,
+    payment_request: String,
+    expiry: String,
+    state: InvoiceStateResponse,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum InvoiceStateResponse {
+    Open,
+    Settled,
+    Cancelled,
+    Accepted,
+}
+
+impl TryInto<Invoice> for InvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Invoice, Error> {
+        let mut settle_date: Option<i64> = None;
+        if self.settled {
+            settle_date =
+                Some(parse_number(&self.settle_date).expect("settle_date should be a number"));
+        }
+
+        let status = match self.state {
+            InvoiceStateResponse::Open => crate::types::InvoiceStatus::Pending,
+            InvoiceStateResponse::Settled => crate::types::InvoiceStatus::Settled,
+            InvoiceStateResponse::Cancelled => crate::types::InvoiceStatus::Cancelled,
+            InvoiceStateResponse::Accepted => crate::types::InvoiceStatus::Accepted,
+        };
+
+        let invoice = Invoice {
+            bolt11: self.payment_request,
+            memo: self.memo,
+            amount: parse_number(&self.value).expect("amt_paid_sat should be a number"),
+            amount_msat: parse_number(&self.value_msat).expect("amt_paid_msat should be a number"),
+            pre_image: Some(
+                convert_base64_to_hex(&self.r_preimage)
+                    .expect("coudln't convert r_preimage from base64 to hex"),
+            ),
+            payment_hash: convert_base64_to_hex(&self.r_hash)
+                .expect("coudln't convert r_hash from base64 to hex"),
+            settled: self.settled,
+            settle_date,
+            creation_date: parse_number(&self.creation_date)
+                .expect("creation_date should be a number"),
+            expiry: parse_number(&self.expiry).expect("expiry should be a number"),
+            status,
+        };
+
+        Ok(invoice)
     }
 }
 

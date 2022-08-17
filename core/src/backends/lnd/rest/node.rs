@@ -7,7 +7,7 @@ use crate::types::{
 use super::config::LndRestConfig;
 use super::types::{
     ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse, SendPaymentSyncRequest,
-    SendPaymentSyncResponse,
+    SendPaymentSyncResponse, InvoiceResponse
 };
 
 pub struct LndRest {
@@ -97,9 +97,15 @@ impl NodeMethods for LndRest {
         Ok(data.try_into()?)
     }
 
-    async fn get_invoice(&self, _payment_hash: String) -> Result<Invoice, Error> {
-        Err(Error::UnknownError(String::from(
-            "get_invoice() not implemented yet",
-        )))
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
+        let url = format!("{0}/v1/invoice/{1}", self.config.url, payment_hash);
+
+        let mut response = self.client.get(&url).send().await?;
+
+        response = Self::on_response(response).await?;
+
+        let data: InvoiceResponse = response.json().await?;
+
+        Ok(data.try_into()?)
     }
 }
