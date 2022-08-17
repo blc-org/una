@@ -26,8 +26,7 @@ impl TryFrom<NodeConfig> for LndRestConfig {
 
         let config = LndRestConfig {
             url,
-            macaroon: hex::decode(&macaroon)
-                .map_err(|_| ConfigError::ParsingHexError("macaroon".to_string()))?,
+            macaroon,
             tls_certificate: hex::decode(&tls_certificate)
                 .map_err(|_| ConfigError::ParsingHexError("tls_certificate".to_string()))?,
         };

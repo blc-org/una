@@ -15,7 +15,7 @@ impl LndRest {
         let tls_certificate = reqwest::Certificate::from_pem(&config.tls_certificate)?;
 
         let mut headers = reqwest::header::HeaderMap::new();
-        let mut macaroon_value = reqwest::header::HeaderValue::from_bytes(&config.macaroon)?;
+        let mut macaroon_value = reqwest::header::HeaderValue::from_str(config.macaroon.as_str())?;
         macaroon_value.set_sensitive(true);
         headers.insert("Grpc-Metadata-macaroon", macaroon_value);
 
