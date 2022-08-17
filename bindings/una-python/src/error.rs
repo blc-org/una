@@ -1,8 +1,8 @@
 use std::result::Result;
 
 use pyo3::exceptions::{
-    PyBaseException, PyException, PyKeyError, PyNotImplementedError, PyPermissionError,
-    PyValueError,
+    PyBaseException, PyConnectionError, PyException, PyKeyError, PyNotImplementedError,
+    PyPermissionError, PyTimeoutError, PyValueError,
 };
 use pyo3::{create_exception, PyErr};
 use pythonize::PythonizeError;
@@ -32,6 +32,13 @@ impl From<PyError> for PyErr {
             }
             UnaError::Unauthorized => PyPermissionError::new_err(message),
             UnaError::NotImplemented => PyNotImplementedError::new_err(message),
+            UnaError::ConnectionError(message) => {
+                if message.contains("timeout") {
+                    PyTimeoutError::new_err(message)
+                } else {
+                    PyConnectionError::new_err(message)
+                }
+            }
             UnaError::ApiError(message) => PyApiError::new_err(message),
             _ => PyBaseException::new_err(message),
         }

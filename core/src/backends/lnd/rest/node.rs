@@ -38,7 +38,7 @@ impl LndRest {
 
                 match error.message.as_str() {
                     "permission denied" => Err(Error::Unauthorized),
-                    _ => Err(Error::UnknownError(error.message)),
+                    _ => Err(Error::ApiError(error.message)),
                 }
             }
             _ => match response.error_for_status() {

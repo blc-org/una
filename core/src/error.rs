@@ -29,6 +29,7 @@ pub enum Error {
     Unauthorized,
     NotImplemented,
     ConfigError(ConfigError),
+    ConnectionError(String),
     ApiError(String),
     UnknownError(String),
     ConversionError(String),
@@ -42,6 +43,7 @@ impl Display for Error {
             Error::Unauthorized => String::from("unauthorized credentials"),
             Error::NotImplemented => String::from("not implemented"),
             Error::ConfigError(err) => err.to_string(),
+            Error::ConnectionError(err) => err.to_string(),
             Error::ApiError(err) => err.clone(),
             Error::ConversionError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
@@ -53,7 +55,23 @@ impl Display for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
-        Error::ApiError(err.to_string())
+        if err.is_timeout() {
+            let message = match err.url() {
+                Some(url) => format!("timeout: {}", url),
+                None => String::from("timeout"),
+            };
+            Error::ConnectionError(message)
+        } else if err.is_connect() {
+            let message = match err.url() {
+                Some(url) => format!("couldn't connect to {}", url),
+                None => err.to_string(),
+            };
+            Error::ConnectionError(message)
+        } else if err.is_builder() {
+            Error::ConnectionError(err.to_string().replace("builder error: ", ""))
+        } else {
+            Error::ApiError(err.to_string())
+        }
     }
 }
 
