@@ -1,17 +1,17 @@
 use std::convert::TryFrom;
 
-use crate::error::ConfigError;
+use crate::error::{ConfigError, Error};
 use crate::types::NodeConfig;
 
 #[derive(Clone, Debug)]
 pub struct LndRestConfig {
     pub url: String,
-    pub macaroon: Vec<u8>,
+    pub macaroon: String,
     pub tls_certificate: Vec<u8>,
 }
 
 impl TryFrom<NodeConfig> for LndRestConfig {
-    type Error = ConfigError;
+    type Error = Error;
 
     fn try_from(config: NodeConfig) -> Result<Self, Self::Error> {
         let url = config

@@ -1,7 +1,7 @@
 use http::uri::Uri;
 use std::convert::TryFrom;
 
-use crate::error::ConfigError;
+use crate::error::{ConfigError, Error};
 use crate::types::NodeConfig;
 
 #[derive(Clone, Debug)]
@@ -13,7 +13,7 @@ pub struct ClnGrpcConfig {
 }
 
 impl TryFrom<NodeConfig> for ClnGrpcConfig {
-    type Error = ConfigError;
+    type Error = Error;
 
     fn try_from(config: NodeConfig) -> Result<Self, Self::Error> {
         let url = config
