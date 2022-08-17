@@ -1,11 +1,12 @@
-import asyncio
 import una
+import asyncio
 
-import pytest
-pytest_plugins = ('pytest_asyncio',)
+invoice = dict({
+    "amount": 1000,
+    "description": "test bindings"
+})
 
-@pytest.fixture
-def lnd_rest():
+async def lnd_rest():
     config_lnd_rest = dict({
         "url": "https://127.0.0.1:8081",
         "macaroon": "0201036c6e6402f801030a100249a596de122aa0b6cee0d446f166231201301a160a0761646472657373120472656164120577726974651a130a04696e666f120472656164120577726974651a170a08696e766f69636573120472656164120577726974651a210a086d616361726f6f6e120867656e6572617465120472656164120577726974651a160a076d657373616765120472656164120577726974651a170a086f6666636861696e120472656164120577726974651a160a076f6e636861696e120472656164120577726974651a140a057065657273120472656164120577726974651a180a067369676e6572120867656e657261746512047265616400000620a66d3da5b13d50b2c506a2191927bce8ef13e8fd192af2c69b5dcefddb97199d",
@@ -13,10 +14,10 @@ def lnd_rest():
     })
 
     lnd_rest = una.Node("LndRest", config_lnd_rest)
-    yield lnd_rest
+    print(await lnd_rest.get_info())
+    print(await lnd_rest.create_invoice(invoice))
 
-@pytest.fixture
-def cln_grpc():
+async def cln_grpc():
     config_cln_grpc = dict({
         "url": "https://localhost:11002",
         "tls_certificate": "2d2d2d2d2d424547494e2043455254494649434154452d2d2d2d2d0d0a4d494942636a434341526967417749424167494a414d466c546169526559526a4d416f4743437147534d343942414d434d4259784644415342674e5642414d4d0d0a43324e73626942536232393049454e424d434158445463314d4445774d5441774d4441774d466f59447a51774f5459774d5441784d4441774d444177576a41570d0a4d52517745675944565151444441746a62473467556d3976644342445154425a4d424d4742797147534d34394167454743437147534d343941774548413049410d0a424c4344514c387469663542445051643943715976776361756749752b757274616e554359536c6b4b714b3736562f4d66646b307372464c364c6d6e684b32720d0a61434c494b475841334f4f545038426e5a5a3144547a4b6a5454424c4d426b4741315564455151534d42434341324e73626f494a6247396a5957786f62334e300d0a4d42304741315564446751574242526a68486d527145316c775a56656b53735a374f56456d4a6c65736a415042674e5648524d4241663845425441444151482f0d0a4d416f4743437147534d343942414d43413067414d45554349474b772b784259364f656b334b6c675957693050346459525a57632b67537343616835513554620d0a4a575959416945413538316b475337347335694a58475950514351416d777531524b4577426139432b625552526e4569676b633d0d0a2d2d2d2d2d454e442043455254494649434154452d2d2d2d2d0d0a",
@@ -25,30 +26,20 @@ def cln_grpc():
     })
 
     cln_grpc = una.Node("ClnGrpc", config_cln_grpc)
-    yield cln_grpc
+    print(await cln_grpc.get_info())
+    print(await cln_grpc.create_invoice(invoice))
 
-@pytest.mark.asyncio
-async def test_get_info(lnd_rest, cln_grpc):
-    await lnd_rest.get_info()
-    await cln_grpc.get_info()
-
-@pytest.mark.asyncio
-async def test_create_invoice(lnd_rest, cln_grpc):
-    invoice = dict({
-        "amount": 100,
-        "description": "test bindings"
+async def eclair_rest():
+    config_eclair_rest = dict({
+        "url": "http://127.0.0.1:8283",
+        "username": "",
+        "password": "eclairpw"
     })
 
-    await lnd_rest.create_invoice(invoice)
-    await cln_grpc.create_invoice(invoice)
+    eclair_rest = una.Node("EclairRest", config_eclair_rest)
+    print(await eclair_rest.get_info())
+    print(await eclair_rest.create_invoice(invoice))
 
-@pytest.mark.asyncio
-async def test_create_invoice_without_amount(lnd_rest, cln_grpc):
-    invoice = dict({
-        "description": "test bindings"
-    })
-
-    res = await lnd_rest.create_invoice(invoice)
-    print(res)
-    res = await cln_grpc.create_invoice(invoice)
-    print(res)
+# asyncio.run(lnd_rest())
+# asyncio.run(cln_grpc())
+asyncio.run(eclair_rest())

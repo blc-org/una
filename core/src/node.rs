@@ -22,21 +22,21 @@ impl Node {
     pub fn new(backend: Backend, config: NodeConfig) -> Result<Self, Error> {
         match backend {
             Backend::LndRest => {
-                let node = LndRest::new(config).unwrap();
+                let node = LndRest::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
                 })
             }
             Backend::ClnGrpc => {
-                let node = ClnGrpc::new(config).unwrap();
+                let node = ClnGrpc::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
                 })
             }
             Backend::EclairRest => {
-                let node = EclairRest::new(config).unwrap();
+                let node = EclairRest::new(config.try_into()?)?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),

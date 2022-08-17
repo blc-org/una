@@ -3,17 +3,25 @@
 #[macro_use]
 extern crate napi_derive;
 
-use napi::{bindgen_prelude::*, Env, Error, JsObject, Result};
-
 use std::sync::Arc;
 use tokio::sync::Mutex;
+
+use napi::{Env, JsObject, Result};
+
 use una_core::{
     backends::{
-        cln::grpc::node::ClnGrpc, eclair::rest::node::EclairRest, lnd::rest::node::LndRest,
+        cln::grpc::{config::ClnGrpcConfig, node::ClnGrpc},
+        eclair::rest::{config::EclairRestConfig, node::EclairRest},
+        lnd::rest::{config::LndRestConfig, node::LndRest},
     },
+    error::Error as UnaError,
     node::{Node, NodeMethods},
     types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
 };
+
+pub mod error;
+
+use error::OrNapiError;
 
 #[napi(js_name = "Node")]
 struct JsNode(Arc<Mutex<Node>>);
@@ -27,34 +35,34 @@ impl JsNode {
 
         let node = match backend {
             Backend::LndRest => {
-                let node = LndRest::new(config).unwrap();
+                let config = TryInto::<LndRestConfig>::try_into(config).or_napi_error()?;
+                let node = LndRest::new(config).or_napi_error()?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
                 })
             }
             Backend::ClnGrpc => {
-                let node = ClnGrpc::new(config).unwrap();
+                let config = TryInto::<ClnGrpcConfig>::try_into(config).or_napi_error()?;
+                let node = ClnGrpc::new(config).or_napi_error()?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
                 })
             }
             Backend::EclairRest => {
-                let node = EclairRest::new(config.try_into().unwrap()).unwrap();
+                let config = TryInto::<EclairRestConfig>::try_into(config).or_napi_error()?;
+                let node = EclairRest::new(config).or_napi_error()?;
                 Ok(Node {
                     backend,
                     node: Box::new(node),
                 })
             }
             Backend::LndGrpc => todo!(),
-            Backend::InvalidBackend => Err(Error::new(
-                Status::InvalidArg,
-                "Invalid backend".to_string(),
-            )),
+            Backend::InvalidBackend => Err(UnaError::InvalidBackend),
         };
 
-        Ok(Self(Arc::new(Mutex::new(node.unwrap()))))
+        Ok(Self(Arc::new(Mutex::new(node.or_napi_error()?))))
     }
 
     #[napi(
@@ -68,7 +76,12 @@ impl JsNode {
 
         env.execute_tokio_future(
             async move {
-                let payreq = node.lock().await.create_invoice(invoice).await.unwrap();
+                let payreq = node
+                    .lock()
+                    .await
+                    .create_invoice(invoice)
+                    .await
+                    .or_napi_error()?;
                 Ok(payreq)
             },
             |&mut env, payreq| Ok(env.to_js_value(&payreq)),
@@ -81,7 +94,7 @@ impl JsNode {
 
         env.execute_tokio_future(
             async move {
-                let info: NodeInfo = node.lock().await.get_info().await.unwrap();
+                let info: NodeInfo = node.lock().await.get_info().await.or_napi_error()?;
                 Ok(info)
             },
             |&mut env, info| Ok(env.to_js_value(&info)),

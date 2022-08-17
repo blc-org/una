@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
+use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
 
 use super::config::LndRestConfig;
 use super::types::{ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse};
@@ -11,16 +11,11 @@ pub struct LndRest {
 }
 
 impl LndRest {
-    pub fn new(config: NodeConfig) -> Result<Self, Error> {
-        let config: LndRestConfig = config.into();
-
-        let tls_certificate =
-            reqwest::Certificate::from_pem(&hex::decode(config.tls_certificate.clone()).unwrap())
-                .unwrap();
+    pub fn new(config: LndRestConfig) -> Result<Self, Error> {
+        let tls_certificate = reqwest::Certificate::from_pem(&config.tls_certificate)?;
 
         let mut headers = reqwest::header::HeaderMap::new();
-        let mut macaroon_value =
-            reqwest::header::HeaderValue::from_str(config.macaroon.as_str()).unwrap();
+        let mut macaroon_value = reqwest::header::HeaderValue::from_str(config.macaroon.as_str())?;
         macaroon_value.set_sensitive(true);
         headers.insert("Grpc-Metadata-macaroon", macaroon_value);
 
@@ -29,8 +24,7 @@ impl LndRest {
             client: reqwest::Client::builder()
                 .add_root_certificate(tls_certificate)
                 .default_headers(headers)
-                .build()
-                .unwrap(),
+                .build()?,
         })
     }
 
@@ -42,11 +36,9 @@ impl LndRest {
             reqwest::StatusCode::INTERNAL_SERVER_ERROR => {
                 let error: ApiError = response.json().await?;
 
-                println!("{:?}", error);
-
                 match error.message.as_str() {
-                    "permission denied" => Err(Error::UnauthorizedMacaroon),
-                    _ => Err(Error::UnknownError(error.message)),
+                    "permission denied" => Err(Error::Unauthorized),
+                    _ => Err(Error::ApiError(error.message)),
                 }
             }
             _ => match response.error_for_status() {

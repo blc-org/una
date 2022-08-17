@@ -1,3 +1,4 @@
+use crate::error::{ConfigError, Error};
 use crate::types::NodeConfig;
 
 #[derive(Clone, Debug)]
@@ -7,12 +8,26 @@ pub struct EclairRestConfig {
     pub password: String,
 }
 
-impl From<NodeConfig> for EclairRestConfig {
-    fn from(config: NodeConfig) -> Self {
-        EclairRestConfig {
-            url: config.url.unwrap(),
-            username: config.username.unwrap(),
-            password: config.password.unwrap(),
-        }
+impl TryFrom<NodeConfig> for EclairRestConfig {
+    type Error = Error;
+
+    fn try_from(config: NodeConfig) -> Result<Self, Self::Error> {
+        let url = config
+            .url
+            .ok_or_else(|| ConfigError::MissingField("url".to_string()))?;
+        let username = config
+            .username
+            .ok_or_else(|| ConfigError::MissingField("username".to_string()))?;
+        let password = config
+            .password
+            .ok_or_else(|| ConfigError::MissingField("password".to_string()))?;
+
+        let config = EclairRestConfig {
+            url,
+            username,
+            password,
+        };
+
+        Ok(config)
     }
 }

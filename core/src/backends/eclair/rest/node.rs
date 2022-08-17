@@ -1,11 +1,10 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
+use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
 
 use super::config::EclairRestConfig;
 use super::types::{
-    ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
-    GetInfoResponse,
+    ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse, GetInfoResponse,
 };
 
 pub struct EclairRest {
@@ -14,22 +13,19 @@ pub struct EclairRest {
 }
 
 impl EclairRest {
-    pub fn new(config: NodeConfig) -> Result<Self, Error> {
-        let config: EclairRestConfig = config.into();
-
-        let encoded_auth = format!("{}:{}", config.username, config.password);
-        let auhtorization = format!("Basic {}", base64::encode(encoded_auth));
+    pub fn new(config: EclairRestConfig) -> Result<Self, Error> {
+        let auth = format!("{}:{}", &config.username, &config.password);
+        let authorization = format!("Basic {}", base64::encode(auth));
 
         let mut headers = reqwest::header::HeaderMap::new();
-        let auhtorization_value = reqwest::header::HeaderValue::from_str(&auhtorization).unwrap();
-        headers.insert("Authorization", auhtorization_value);
+        let authorization_value = reqwest::header::HeaderValue::from_str(&authorization)?;
+        headers.insert("Authorization", authorization_value);
 
         Ok(EclairRest {
             config,
             client: reqwest::Client::builder()
                 .default_headers(headers)
-                .build()
-                .unwrap(),
+                .build()?,
         })
     }
 
@@ -38,16 +34,7 @@ impl EclairRest {
 
         match status {
             reqwest::StatusCode::OK => Ok(response),
-            reqwest::StatusCode::INTERNAL_SERVER_ERROR => {
-                let error: ApiError = response.json().await?;
-
-                println!("{:?}", error);
-
-                match error.message.as_str() {
-                    "permission denied" => Err(Error::UnauthorizedMacaroon),
-                    _ => Err(Error::UnknownError(error.message)),
-                }
-            }
+            reqwest::StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
             _ => match response.error_for_status() {
                 Ok(_res) => Ok(_res),
                 Err(err) => Err(err.into()),

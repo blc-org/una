@@ -16,6 +16,7 @@ schemars = "0.8.10"
 tonic = { version = "0.8.0", features = ["tls"] }
 prost = "0.11"
 cuid = "1.2.0"
+http = "0.2.8"
 
 [build-dependencies]
 tonic-build = "0.8"
