@@ -6,7 +6,8 @@ use crate::types::{
 
 use super::config::EclairRestConfig;
 use super::types::{
-    ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse, GetInfoResponse,
+    ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
+    GetInfoResponse, PayInvoiceRequest, PayInvoiceResponse,
 };
 
 pub struct EclairRest {
@@ -36,6 +37,10 @@ impl EclairRest {
 
         match status {
             reqwest::StatusCode::OK => Ok(response),
+            reqwest::StatusCode::BAD_REQUEST => {
+                let error: ApiError = response.json().await?;
+                Err(Error::ApiError(error.message))
+            }
             reqwest::StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
             _ => match response.error_for_status() {
                 Ok(_res) => Ok(_res),
@@ -102,7 +107,16 @@ impl NodeMethods for EclairRest {
         Ok(node_info)
     }
 
-    async fn pay_invoice(&self, _invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
-        Err(Error::NotImplemented)
+    async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        let url = format!("{}/payinvoice", self.config.url);
+
+        let request: PayInvoiceRequest = invoice.into();
+        let mut response = self.client.post(&url).form(&request).send().await?;
+
+        response = Self::on_response(response).await?;
+
+        let data: PayInvoiceResponse = response.json().await?;
+
+        Ok(data.try_into()?)
     }
 }
