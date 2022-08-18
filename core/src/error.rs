@@ -105,6 +105,12 @@ impl From<base64::DecodeError> for Error {
     }
 }
 
+impl From<std::num::ParseIntError> for Error {
+    fn from(_: std::num::ParseIntError) -> Self {
+        Error::ConversionError(String::from("couldn't convert string to integer"))
+    }
+}
+
 impl From<Error> for std::io::Error {
     fn from(e: Error) -> std::io::Error {
         std::io::Error::new(ErrorKind::Other, e.to_string())
