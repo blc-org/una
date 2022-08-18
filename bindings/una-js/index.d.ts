@@ -8,6 +8,7 @@ export class Node {
   constructor(backend: Backend, config: NodeConfig)
   createInvoice(invoice: CreateInvoiceParams): Promise<CreateInvoiceResult>
   getInfo(): Promise<NodeInfo>
+  payInvoice(invoice: PayInvoiceParams): Promise<PayInvoiceResult>
 }
 
 export type Backend = "LndRest" | "LndGrpc" | "ClnGrpc" | "EclairRest" | "InvalidBackend";
@@ -58,4 +59,19 @@ export interface NodeInfo {
   network: Network;
   node_pubkey: string;
   version: string;
+}
+
+export interface PayInvoiceParams {
+  amount?: number | null;
+  amount_msat?: number | null;
+  max_fee_msat?: number | null;
+  max_fee_percent?: number | null;
+  max_fee_sat?: number | null;
+  payment_request: string;
+}
+
+export interface PayInvoiceResult {
+  fees_msat?: number | null;
+  payment_hash: string;
+  payment_preimage: string;
 }
