@@ -37,6 +37,7 @@ const invoice = {
 
 async function test_node(backend, config) {
   const node = new Node(backend, config);
+
   node
     .getInfo()
     .then((info) => console.log(info))
@@ -46,8 +47,16 @@ async function test_node(backend, config) {
     .createInvoice(invoice)
     .then((invoice) => console.log(invoice))
     .catch((err) => console.log(err.message, err.code));
+
+  node
+    .payInvoice({
+      payment_request:
+        "lnbcrt10u1p30ag67p5v45p0xljwcktszppfj8a3wcg460xrwwhpt0xcghx36xcsr3dkz7spp5nctfmzx6k5dyv693t52y0fs95zrk33f37mue5f3geu4wt9cwgltsdpz2phkcctjypykuan0d93k2grxdaezqcn0vgxqyjw5qcqp2rzjq25z6j80gkd8vyr5nptma4lnmhjvyq66eretzvy5a4gty72g8xpejqqqdsqqqqgqqyqqqqlgqqqqqqgq9q9qyysgqd4e22wy6ejggnpg8kfkuxf6vkgxejfe4283zjgsfxmd8w7dsvk7k43lsgakwzyanzfu372w8ke8tsuyzmp28kng4e6xyz8eyh99ncagpa8myt0",
+    })
+    .then((result) => console.log(result))
+    .catch((err) => console.log(err.message, err.code));
 }
 
 // test_node("LndRest", config.lnd.rest);
-// test_node("EclairRest", config.eclair.rest);
-test_node("ClnGrpc", config.cln.grpc);
+test_node("EclairRest", config.eclair.rest);
+// test_node("ClnGrpc", config.cln.grpc);

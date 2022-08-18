@@ -3,6 +3,7 @@ use std::env;
 
 use una_core::types::{
     Backend, ChannelStats, CreateInvoiceParams, CreateInvoiceResult, Network, NodeConfig, NodeInfo,
+    PayInvoiceParams, PayInvoiceResult,
 };
 
 fn write_schema(dir: &std::path::Path, name: &str, schema: &RootSchema) -> std::io::Result<()> {
@@ -40,6 +41,12 @@ fn main() {
 
     let schema = schema_for!(CreateInvoiceResult);
     write_schema(&dir, "create_invoice_result", &schema).unwrap();
+
+    let schema = schema_for!(PayInvoiceParams);
+    write_schema(&dir, "pay_invoice_params", &schema).unwrap();
+
+    let schema = schema_for!(PayInvoiceResult);
+    write_schema(&dir, "pay_invoice_result", &schema).unwrap();
 
     println!("Wrote schemas to {}", dir.to_string_lossy());
 }

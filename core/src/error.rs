@@ -77,7 +77,7 @@ impl From<reqwest::Error> for Error {
 
 impl From<tonic::transport::Error> for Error {
     fn from(err: tonic::transport::Error) -> Self {
-        Error::ApiError(err.to_string())
+        Error::ConnectionError(err.to_string())
     }
 }
 
@@ -89,13 +89,41 @@ impl From<reqwest::header::InvalidHeaderValue> for Error {
 
 impl From<tonic::Status> for Error {
     fn from(status: tonic::Status) -> Self {
-        Error::ApiError(status.message().to_string())
+        let status_message = status.message().to_string();
+
+        let rpc_error_regex =
+            regex::Regex::new(r"RpcError").expect("Hardcoded regex should be valid.");
+        if rpc_error_regex.is_match(&status_message) {
+            let rpc_error_message_regex = regex::Regex::new(r#"message: "(?P<msg>.*)""#)
+                .expect("Hardcoded regex should be valid.");
+            let rpc_error_message = rpc_error_message_regex
+                .captures(&status_message)
+                .and_then(|cap| cap.name("msg").map(|msg| msg.as_str()));
+
+            if let Some(message) = rpc_error_message {
+                return Error::ApiError(message.to_string());
+            }
+        }
+
+        Error::ApiError(status_message)
     }
 }
 
 impl From<ConfigError> for Error {
     fn from(err: ConfigError) -> Self {
         Error::ConfigError(err)
+    }
+}
+
+impl From<base64::DecodeError> for Error {
+    fn from(_: base64::DecodeError) -> Self {
+        Error::ConversionError(String::from("couldn't convert base64 to hex"))
+    }
+}
+
+impl From<std::num::ParseIntError> for Error {
+    fn from(_: std::num::ParseIntError) -> Self {
+        Error::ConversionError(String::from("couldn't convert string to integer"))
     }
 }
 

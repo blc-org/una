@@ -2,10 +2,12 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
+use crate::types::{
+    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+};
 
 use super::config::ClnGrpcConfig;
-use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest};
+use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest, PayRequest};
 
 pub struct ClnGrpc {
     endpoint: Endpoint,
@@ -64,5 +66,14 @@ impl NodeMethods for ClnGrpc {
         result.label = Some(label);
 
         Ok(result)
+    }
+
+    async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        let mut client = self.get_client().await?;
+
+        let request: PayRequest = invoice.into();
+        let response = client.pay(request).await?.into_inner();
+
+        Ok(response.into())
     }
 }

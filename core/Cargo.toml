@@ -17,6 +17,7 @@ tonic = { version = "0.8.0", features = ["tls"] }
 prost = "0.11"
 cuid = "1.2.0"
 http = "0.2.8"
+regex = "1.6.0"
 
 [build-dependencies]
 tonic-build = "0.8"

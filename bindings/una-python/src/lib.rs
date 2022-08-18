@@ -10,7 +10,10 @@ use una_core::{
         lnd::rest::{config::LndRestConfig, node::LndRest},
     },
     node::{Node, NodeMethods},
-    types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo},
+    types::{
+        Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo, PayInvoiceParams,
+        PayInvoiceResult,
+    },
 };
 
 pub mod error;
@@ -84,6 +87,21 @@ impl PyNode {
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let result = node.lock().await.get_info().await.or_py_error()?;
             let result = Python::with_gil(|py| pythonize::<NodeInfo>(py, &result).or_py_error())?;
+            Ok(result)
+        })
+    }
+
+    pub fn pay_invoice<'p>(&self, py: Python<'p>, invoice: PyObject) -> PyResult<&'p PyAny> {
+        let node = self.0.clone();
+
+        let invoice = Python::with_gil(|py| {
+            depythonize::<PayInvoiceParams>(invoice.as_ref(py)).or_py_error()
+        })?;
+
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let result = node.lock().await.pay_invoice(invoice).await.or_py_error()?;
+            let result =
+                Python::with_gil(|py| pythonize::<PayInvoiceResult>(py, &result).or_py_error())?;
             Ok(result)
         })
     }

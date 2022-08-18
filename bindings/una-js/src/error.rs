@@ -29,12 +29,6 @@ impl From<NapiError> for Error {
     }
 }
 
-impl From<UnaError> for NapiError {
-    fn from(err: UnaError) -> Self {
-        NapiError(err)
-    }
-}
-
 pub trait OrNapiError<T> {
     fn or_napi_error(self) -> Result<T, NapiError>;
 }

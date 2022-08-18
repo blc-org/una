@@ -16,6 +16,9 @@ async def lnd_rest():
     lnd_rest = una.Node("LndRest", config_lnd_rest)
     print(await lnd_rest.get_info())
     print(await lnd_rest.create_invoice(invoice))
+    print(await lnd_rest.pay_invoice(dict({
+        "payment_request": "lnbcrt10u1p306998pp53jzmkeummuu0u6rfxpcgx7rk5adturte8mppr64032nek3jmjtvqdq4w3jhxapqvf5kuerfdenhxcqzpgxqrrsssp53nhngg8858l2ch63ks3yc2uetzf4gnctp9xccqxuchztxmahd2as9qyyssqzl6m9rwgwp0r5a6de7fj98k42sn7vvf30n6k2ymcq7wvmk4689ls7zewqq9x5maqa60tshdmhu3gx3dd243vh9h9xralrfrjpfwfn3gq6xml7k"
+    })))
 
 async def cln_grpc():
     config_cln_grpc = dict({
@@ -28,6 +31,9 @@ async def cln_grpc():
     cln_grpc = una.Node("ClnGrpc", config_cln_grpc)
     print(await cln_grpc.get_info())
     print(await cln_grpc.create_invoice(invoice))
+    print(await cln_grpc.pay_invoice(dict({
+        "payment_request": "lnbcrt10u1p306998pp53jzmkeummuu0u6rfxpcgx7rk5adturte8mppr64032nek3jmjtvqdq4w3jhxapqvf5kuerfdenhxcqzpgxqrrsssp53nhngg8858l2ch63ks3yc2uetzf4gnctp9xccqxuchztxmahd2as9qyyssqzl6m9rwgwp0r5a6de7fj98k42sn7vvf30n6k2ymcq7wvmk4689ls7zewqq9x5maqa60tshdmhu3gx3dd243vh9h9xralrfrjpfwfn3gq6xml7k"
+    })))
 
 async def eclair_rest():
     config_eclair_rest = dict({
@@ -39,7 +45,10 @@ async def eclair_rest():
     eclair_rest = una.Node("EclairRest", config_eclair_rest)
     print(await eclair_rest.get_info())
     print(await eclair_rest.create_invoice(invoice))
+    print(await eclair_rest.pay_invoice(dict({
+        "payment_request": "lnbcrt10u1p30afdnsp5y05vz3g860fn8fy6fy2u9pr49ttnl6qq85v3mkmzz58cyqxmdpvspp52vy739gahycksqafupk4fw7mu0xjyf2l2e5exr64ycmjedzs3a5sdq4w3jhxapqvf5kuerfdenhxxqyjw5qcqp2rzjq25z6j80gkd8vyr5nptma4lnmhjvyq66eretzvy5a4gty72g8xpejqqqdsqqqqgqqyqqqqlgqqqqqqgq9q9qyysgqp0kpcx20yq5hftwguxfp0aka297g7kqplfl9ntc3rznkwnm9kf94ssq3qygjt2v0jrm95w2s590gc087vr6k3r9fvg9ey58et0dlcdcp978dh6"
+    })))
 
 # asyncio.run(lnd_rest())
-# asyncio.run(cln_grpc())
-asyncio.run(eclair_rest())
+asyncio.run(cln_grpc())
+# asyncio.run(eclair_rest())

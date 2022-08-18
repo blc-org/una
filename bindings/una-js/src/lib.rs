@@ -16,7 +16,7 @@ use una_core::{
     },
     error::Error as UnaError,
     node::{Node, NodeMethods},
-    types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo},
+    types::{Backend, CreateInvoiceParams, NodeConfig, NodeInfo, PayInvoiceParams},
 };
 
 pub mod error;
@@ -98,6 +98,29 @@ impl JsNode {
                 Ok(info)
             },
             |&mut env, info| Ok(env.to_js_value(&info)),
+        )
+    }
+
+    #[napi(
+        ts_args_type = "invoice: PayInvoiceParams",
+        ts_return_type = "Promise<PayInvoiceResult>"
+    )]
+    pub fn pay_invoice(&self, env: Env, invoice: JsObject) -> Result<JsObject> {
+        let node = self.0.clone();
+
+        let invoice: PayInvoiceParams = env.from_js_value(invoice)?;
+
+        env.execute_tokio_future(
+            async move {
+                let payreq = node
+                    .lock()
+                    .await
+                    .pay_invoice(invoice)
+                    .await
+                    .or_napi_error()?;
+                Ok(payreq)
+            },
+            |&mut env, payreq| Ok(env.to_js_value(&payreq)),
         )
     }
 }
