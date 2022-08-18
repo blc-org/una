@@ -1,6 +1,6 @@
 #![allow(clippy::from_over_into)]
 
-use crate::types::*;
+use crate::{types::*, utils};
 use cuid;
 
 tonic::include_proto!("cln");
@@ -63,6 +63,45 @@ impl Into<NodeInfo> for GetinfoResponse {
                 inactive: self.num_inactive_channels as i64,
                 pending: self.num_pending_channels as i64,
             },
+        }
+    }
+}
+
+impl From<PayInvoiceParams> for PayRequest {
+    fn from(params: PayInvoiceParams) -> Self {
+        let amount_msat =
+            utils::get_amount_msat(params.amount, params.amount_msat).map(|v| Amount { msat: v });
+
+        PayRequest {
+            bolt11: params.payment_request,
+            msatoshi: amount_msat,
+            label: None,
+            riskfactor: None,
+            maxfeepercent: params.max_fee_percent,
+            retry_for: None,
+            maxdelay: None,
+            exemptfee: None,
+            localofferid: None,
+            exclude: vec![],
+            maxfee: params.max_fee_msat.map(|v| Amount { msat: v as u64 }),
+            description: None,
+        }
+    }
+}
+
+impl Into<PayInvoiceResult> for PayResponse {
+    fn into(self) -> PayInvoiceResult {
+        let fees_msat = match (self.amount_msat, self.amount_sent_msat) {
+            (Some(amount_msat), Some(amount_sent_msat)) => {
+                Some(amount_sent_msat.msat - amount_msat.msat)
+            }
+            _ => None,
+        };
+
+        PayInvoiceResult {
+            payment_preimage: hex::encode(self.payment_preimage),
+            payment_hash: hex::encode(self.payment_hash),
+            fees_msat,
         }
     }
 }

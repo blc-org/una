@@ -7,7 +7,7 @@ use crate::types::{
 };
 
 use super::config::ClnGrpcConfig;
-use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest};
+use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest, PayRequest};
 
 pub struct ClnGrpc {
     endpoint: Endpoint,
@@ -68,7 +68,12 @@ impl NodeMethods for ClnGrpc {
         Ok(result)
     }
 
-    async fn pay_invoice(&self, _invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
-        Err(Error::NotImplemented)
+    async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        let mut client = self.get_client().await?;
+
+        let request: PayRequest = invoice.into();
+        let response = client.pay(request).await?.into_inner();
+
+        Ok(response.into())
     }
 }
