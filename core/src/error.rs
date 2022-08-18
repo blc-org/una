@@ -99,6 +99,12 @@ impl From<ConfigError> for Error {
     }
 }
 
+impl From<base64::DecodeError> for Error {
+    fn from(_: base64::DecodeError) -> Self {
+        Error::ConversionError(String::from("couldn't convert base64 to hex"))
+    }
+}
+
 impl From<Error> for std::io::Error {
     fn from(e: Error) -> std::io::Error {
         std::io::Error::new(ErrorKind::Other, e.to_string())
