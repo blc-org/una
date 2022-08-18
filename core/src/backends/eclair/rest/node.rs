@@ -1,6 +1,8 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
+use crate::types::{
+    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+};
 
 use super::config::EclairRestConfig;
 use super::types::{
@@ -98,5 +100,9 @@ impl NodeMethods for EclairRest {
             .count() as i64;
 
         Ok(node_info)
+    }
+
+    async fn pay_invoice(&self, _invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        Err(Error::NotImplemented)
     }
 }

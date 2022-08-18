@@ -116,3 +116,20 @@ pub struct NodeInfo {
     pub node_pubkey: String,
     pub channels: ChannelStats,
 }
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct PayInvoiceParams {
+    pub payment_request: String,
+    pub amount: Option<u64>,
+    pub amount_msat: Option<u64>,
+    pub max_fee_sat: Option<u64>,
+    pub max_fee_msat: Option<u64>,
+    pub max_fee_percent: Option<f64>,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct PayInvoiceResult {
+    pub payment_hash: String,
+    pub payment_preimage: String,
+    pub fees_msat: Option<u64>,
+}

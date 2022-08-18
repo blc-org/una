@@ -2,7 +2,10 @@ use crate::backends::cln::grpc::node::ClnGrpc;
 use crate::backends::eclair::rest::node::EclairRest;
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
-use crate::types::{Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo};
+use crate::types::{
+    Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo, PayInvoiceParams,
+    PayInvoiceResult,
+};
 
 #[async_trait::async_trait]
 pub trait NodeMethods {
@@ -11,6 +14,7 @@ pub trait NodeMethods {
         invoice: CreateInvoiceParams,
     ) -> Result<CreateInvoiceResult, Error>;
     async fn get_info(&self) -> Result<NodeInfo, Error>;
+    async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error>;
 }
 
 pub struct Node {
@@ -58,5 +62,9 @@ impl NodeMethods for Node {
 
     async fn get_info(&self) -> Result<NodeInfo, Error> {
         self.node.get_info().await
+    }
+
+    async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        self.node.pay_invoice(invoice).await
     }
 }

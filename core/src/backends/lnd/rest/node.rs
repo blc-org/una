@@ -1,6 +1,8 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
-use crate::types::{CreateInvoiceParams, CreateInvoiceResult, NodeInfo};
+use crate::types::{
+    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+};
 
 use super::config::LndRestConfig;
 use super::types::{ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse};
@@ -77,5 +79,9 @@ impl NodeMethods for LndRest {
         let data: GetInfoResponse = response.json().await?;
 
         Ok(data.into())
+    }
+
+    async fn pay_invoice(&self, _invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {
+        Err(Error::NotImplemented)
     }
 }
