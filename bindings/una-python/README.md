@@ -1,14 +1,16 @@
 # Python bindings for UNA
 
+Requires Python >=3.7.
+
 ## Build
 
 ### Setup environment
 
 ```shell
 $ cd bindings/una-python
-$ python -m venv venv
-$ source venv/bin/activate
-$ pip install maturin
+$ python -m venv .venv
+$ source .venv/bin/activate
+$ pip install -U pip maturin
 ```
 
 ### Build the package
