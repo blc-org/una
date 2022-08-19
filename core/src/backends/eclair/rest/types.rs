@@ -117,7 +117,7 @@ pub struct PayementRequestResponse {
     pub description: String,
     pub payment_hash: String,
     pub payment_metadata: String,
-    pub expiry: i32,
+    pub expiry: u64,
     pub min_final_cltv_expiry: u32,
     pub amount: u64,
 }
@@ -132,7 +132,7 @@ pub enum InvoiceStatusTypeResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct InvoiceDateResponse {
-    pub unix: i64,
+    pub unix: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -146,7 +146,7 @@ pub struct InvoiceStatusResponse {
 
 impl Into<Invoice> for InvoiceResponse {
     fn into(self) -> Invoice {
-        let mut settle_date: Option<i64> = None;
+        let mut settle_date: Option<u64> = None;
         let settled = match self.status._type {
             InvoiceStatusTypeResponse::Received => match self.status.received_at {
                 Some(e) => {

@@ -7,7 +7,7 @@ use crate::types::{
 };
 
 use super::config::ClnGrpcConfig;
-use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest, PayRequest};
+use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest, PayRequest, ListinvoicesRequest};
 
 pub struct ClnGrpc {
     endpoint: Endpoint,
@@ -68,10 +68,23 @@ impl NodeMethods for ClnGrpc {
         Ok(result)
     }
 
-    async fn get_invoice(&self, _payment_hash: String) -> Result<Invoice, Error> {
-        Err(Error::UnknownError(String::from(
-            "get_invoice() not implemented yet",
-        )))
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
+        let mut client = self.get_client().await?;
+
+        let payment_hash_hex = match hex::decode(payment_hash) {
+            Ok(hex) => hex,
+            Err(_) => return Err(Error::ApiError(String::from("Invalid payment_hash"))),
+        };
+
+        let request = ListinvoicesRequest {
+            payment_hash: Some(payment_hash_hex),
+            label: None,
+            invstring: None,
+            offer_id: None,
+        };
+        let response = client.list_invoices(request).await?.into_inner();
+
+        Ok(response.try_into()?)
     }
 
     async fn pay_invoice(&self, invoice: PayInvoiceParams) -> Result<PayInvoiceResult, Error> {

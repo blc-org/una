@@ -87,9 +87,9 @@ pub struct Invoice {
     pub pre_image: Option<String>,
     pub payment_hash: String,
     pub settled: bool,
-    pub settle_date: Option<i64>,
-    pub creation_date: i64,
-    pub expiry: i32,
+    pub settle_date: Option<u64>,
+    pub creation_date: u64,
+    pub expiry: u64,
     pub status: InvoiceStatus,
 }
 

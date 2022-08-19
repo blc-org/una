@@ -161,7 +161,7 @@ impl TryInto<Invoice> for InvoiceResponse {
     type Error = Error;
 
     fn try_into(self) -> Result<Invoice, Error> {
-        let mut settle_date: Option<i64> = None;
+        let mut settle_date: Option<u64> = None;
         if self.settled {
             settle_date =
                 Some(parse_number(&self.settle_date).expect("settle_date should be a number"));
