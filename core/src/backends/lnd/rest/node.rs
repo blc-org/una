@@ -1,13 +1,13 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::LndRestConfig;
 use super::types::{
-    ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse, SendPaymentSyncRequest,
-    SendPaymentSyncResponse, InvoiceResponse
+    ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse, InvoiceResponse,
+    SendPaymentSyncRequest, SendPaymentSyncResponse,
 };
 
 pub struct LndRest {

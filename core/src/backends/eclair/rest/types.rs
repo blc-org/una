@@ -1,11 +1,13 @@
 #![allow(clippy::from_over_into)]
 
-use crate::{tools::msat_to_sat, types::*};
+use crate::{
+    types::*,
+    utils::{self, msat_to_sat},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
-use crate::{types::*, utils};
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -167,7 +169,7 @@ impl Into<Invoice> for InvoiceResponse {
         Invoice {
             bolt11: self.payment_request.serialized,
             memo: self.payment_request.description,
-            amount: msat_to_sat(&self.payment_request.amount),
+            amount: msat_to_sat(self.payment_request.amount),
             amount_msat: self.payment_request.amount,
             pre_image: self.payment_preimage,
             payment_hash: self.payment_request.payment_hash,

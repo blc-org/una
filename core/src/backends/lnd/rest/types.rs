@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use crate::tools::convert_base64_to_hex;
+use crate::utils::{b64_to_hex, parse_number};
 use crate::{types::*, utils};
 
 pub type Base64String = String;
-use crate::{error::Error, tools::parse_number};
+use crate::error::Error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -180,10 +180,10 @@ impl TryInto<Invoice> for InvoiceResponse {
             amount: parse_number(&self.value).expect("amt_paid_sat should be a number"),
             amount_msat: parse_number(&self.value_msat).expect("amt_paid_msat should be a number"),
             pre_image: Some(
-                convert_base64_to_hex(&self.r_preimage)
+                b64_to_hex(&self.r_preimage)
                     .expect("coudln't convert r_preimage from base64 to hex"),
             ),
-            payment_hash: convert_base64_to_hex(&self.r_hash)
+            payment_hash: b64_to_hex(&self.r_hash)
                 .expect("coudln't convert r_hash from base64 to hex"),
             settled: self.settled,
             settle_date,

@@ -3,8 +3,8 @@ use crate::backends::eclair::rest::node::EclairRest;
 use crate::backends::lnd::rest::node::LndRest;
 use crate::error::Error;
 use crate::types::{
-    Backend, CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams,
-    PayInvoiceResult,
+    Backend, CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo,
+    PayInvoiceParams, PayInvoiceResult,
 };
 
 #[async_trait::async_trait]

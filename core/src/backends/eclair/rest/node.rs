@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::EclairRestConfig;
 use super::types::{
     ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
-    GetInfoResponse, PayInvoiceRequest, PayInvoiceResponse, InvoiceResponse,
+    GetInfoResponse, InvoiceResponse, PayInvoiceRequest, PayInvoiceResponse,
 };
 
 pub struct EclairRest {
@@ -124,8 +124,6 @@ impl NodeMethods for EclairRest {
 
     async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
         let url = format!("{}/getreceivedinfo", self.config.url);
-
-        println!("{}", payment_hash);
 
         let mut params = HashMap::new();
         params.insert("paymentHash", &payment_hash);

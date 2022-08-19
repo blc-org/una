@@ -2,7 +2,11 @@
 
 use std::time::UNIX_EPOCH;
 
-use crate::{error::Error, tools::msat_to_sat, types::*, utils};
+use crate::{
+    error::Error,
+    types::*,
+    utils::{self, msat_to_sat},
+};
 use cuid;
 
 tonic::include_proto!("cln");
@@ -73,9 +77,8 @@ impl TryInto<Invoice> for ListinvoicesResponse {
     type Error = Error;
 
     fn try_into(self) -> Result<Invoice, Error> {
-        println!("{:?}", self);
         let invoice: &ListinvoicesInvoices = self.invoices.get(0).expect("No invoice found");
-        // let bolt11 = (&invoice.bolt11).ok_or_else(|| Error::ApiError(String::from("bolt11 missing")))?.as_ref();
+
         let bolt11 = match &invoice.bolt11 {
             Some(bolt11) => bolt11.as_ref(),
             None => return Err(Error::ApiError(String::from("bolt11 missing"))),
@@ -113,7 +116,7 @@ impl TryInto<Invoice> for ListinvoicesResponse {
                 Some(description) => String::from(description),
                 None => return Err(Error::ApiError(String::from("description missing"))),
             },
-            amount: msat_to_sat(amount_msat),
+            amount: msat_to_sat(*amount_msat),
             amount_msat: *amount_msat,
             pre_image: invoice.payment_preimage.as_ref().map(hex::encode),
             payment_hash: decoded_invoice.payment_hash().to_string(),

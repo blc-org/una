@@ -3,11 +3,13 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::ClnGrpcConfig;
-use super::pb::{node_client::NodeClient, GetinfoRequest, InvoiceRequest, PayRequest, ListinvoicesRequest};
+use super::pb::{
+    node_client::NodeClient, GetinfoRequest, InvoiceRequest, ListinvoicesRequest, PayRequest,
+};
 
 pub struct ClnGrpc {
     endpoint: Endpoint,
