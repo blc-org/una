@@ -140,7 +140,6 @@ pub struct InvoiceDateResponse {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InvoiceStatusResponse {
-    // "type" is a reserved keyword. Fix it with an _
     #[serde(rename = "type")]
     pub type_field: InvoiceStatusTypeResponse,
     pub amount: Option<u64>,
@@ -150,7 +149,7 @@ pub struct InvoiceStatusResponse {
 impl Into<Invoice> for InvoiceResponse {
     fn into(self) -> Invoice {
         let mut settle_date: Option<u64> = None;
-        let settled = match self.status._type {
+        let settled = match self.status.type_field {
             InvoiceStatusTypeResponse::Received => match self.status.received_at {
                 Some(e) => {
                     settle_date = Some(e.unix);
@@ -161,7 +160,7 @@ impl Into<Invoice> for InvoiceResponse {
             _ => false,
         };
 
-        let status = match self.status._type {
+        let status = match self.status.type_field {
             InvoiceStatusTypeResponse::Received => crate::types::InvoiceStatus::Settled,
             InvoiceStatusTypeResponse::Pending => crate::types::InvoiceStatus::Pending,
             InvoiceStatusTypeResponse::Expired => crate::types::InvoiceStatus::Cancelled,
@@ -170,7 +169,7 @@ impl Into<Invoice> for InvoiceResponse {
         Invoice {
             bolt11: self.payment_request.serialized,
             memo: self.payment_request.description,
-            amount: msat_to_sat(self.payment_request.amount),
+            amount: utils::msat_to_sat(self.payment_request.amount),
             amount_msat: self.payment_request.amount,
             pre_image: self.payment_preimage,
             payment_hash: self.payment_request.payment_hash,
