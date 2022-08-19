@@ -8,8 +8,8 @@ export class Node {
   constructor(backend: Backend, config: NodeConfig)
   createInvoice(invoice: CreateInvoiceParams): Promise<CreateInvoiceResult>
   getInfo(): Promise<NodeInfo>
-  payInvoice(invoice: PayInvoiceParams): Promise<PayInvoiceResult>
   getInvoice(payementHash: String): Promise<Invoice>
+  payInvoice(invoice: PayInvoiceParams): Promise<PayInvoiceResult>
 }
 
 export type Backend = "LndRest" | "LndGrpc" | "ClnGrpc" | "EclairRest" | "InvalidBackend";
