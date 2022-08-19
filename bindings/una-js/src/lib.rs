@@ -102,6 +102,22 @@ impl JsNode {
     }
 
     #[napi(
+        ts_args_type = "payementHash: String",
+        ts_return_type = "Promise<Invoice>"
+    )]
+    pub fn get_invoice(&self, env: Env, payement_hash: String) -> Result<JsObject> {
+        let node = self.0.clone();
+
+        env.execute_tokio_future(
+            async move {
+                let invoice = node.lock().await.get_invoice(payement_hash).await.unwrap();
+                Ok(invoice)
+            },
+            |&mut env, invoice| Ok(env.to_js_value(&invoice)),
+        )
+    }
+
+    #[napi(
         ts_args_type = "invoice: PayInvoiceParams",
         ts_return_type = "Promise<PayInvoiceResult>"
     )]
