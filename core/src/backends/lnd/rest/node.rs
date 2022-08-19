@@ -98,7 +98,7 @@ impl NodeMethods for LndRest {
     }
 
     async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
-        let url = format!("{0}/v1/invoice/{1}", self.config.url, payment_hash);
+        let url = format!("{}/v1/invoice/{}", self.config.url, payment_hash);
 
         let mut response = self.client.get(&url).send().await?;
 

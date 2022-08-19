@@ -129,7 +129,9 @@ impl NodeMethods for EclairRest {
         params.insert("paymentHash", &payment_hash);
 
         let mut response = self.client.post(&url).form(&params).send().await?;
+        
         response = Self::on_response(response).await?;
+        
         let data: InvoiceResponse = response.json().await?;
 
         Ok(data.into())

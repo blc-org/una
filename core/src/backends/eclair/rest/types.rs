@@ -2,7 +2,7 @@
 
 use crate::{
     types::*,
-    utils::{self, msat_to_sat},
+    utils,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -103,7 +103,7 @@ pub struct Feature {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InvoiceResponse {
-    pub payment_request: PayementRequestResponse,
+    pub payment_request: PaymentRequestResponse,
     pub payment_preimage: Option<String>,
     pub status: InvoiceStatusResponse,
     pub created_at: InvoiceDateResponse,
@@ -111,7 +111,7 @@ pub struct InvoiceResponse {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PayementRequestResponse {
+pub struct PaymentRequestResponse {
     pub prefix: String,
     pub timestamp: i64,
     pub node_id: String,
@@ -141,7 +141,8 @@ pub struct InvoiceDateResponse {
 #[serde(rename_all = "camelCase")]
 pub struct InvoiceStatusResponse {
     // "type" is a reserved keyword. Fix it with an _
-    pub _type: InvoiceStatusTypeResponse,
+    #[serde(rename = "type")]
+    pub type_field: InvoiceStatusTypeResponse,
     pub amount: Option<u64>,
     pub received_at: Option<InvoiceDateResponse>,
 }
