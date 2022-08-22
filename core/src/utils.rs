@@ -46,6 +46,8 @@ pub fn b64_to_hex(b64: &str) -> Result<String, Error> {
     Ok(hex::encode(&bytes))
 }
 
-pub fn parse_number<T: FromStr>(text: &str) -> Result<T, T::Err> {
-    text.trim().parse::<T>()
+pub fn parse_number<T: FromStr>(text: &str) -> Result<T, Error> {
+    text.trim()
+        .parse::<T>()
+        .map_err(|_| Error::ParseNumberError(String::from("Could not parse number")))
 }

@@ -11,8 +11,8 @@ use una_core::{
     },
     node::{Node, NodeMethods},
     types::{
-        Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo, PayInvoiceParams,
-        PayInvoiceResult, Invoice,
+        Backend, CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeConfig, NodeInfo,
+        PayInvoiceParams, PayInvoiceResult,
     },
 };
 
@@ -110,7 +110,12 @@ impl PyNode {
         let node = self.0.clone();
 
         pyo3_asyncio::tokio::future_into_py(py, async move {
-            let result = node.lock().await.get_invoice(payment_hash).await.or_py_error()?;
+            let result = node
+                .lock()
+                .await
+                .get_invoice(payment_hash)
+                .await
+                .or_py_error()?;
             let result = Python::with_gil(|py| pythonize::<Invoice>(py, &result).or_py_error())?;
             Ok(result)
         })

@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 
-use crate::utils::{b64_to_hex, parse_number};
 use crate::{types::*, utils};
 
 pub type Base64String = String;
@@ -163,8 +162,9 @@ impl TryInto<Invoice> for InvoiceResponse {
     fn try_into(self) -> Result<Invoice, Error> {
         let mut settle_date: Option<u64> = None;
         if self.settled {
-            settle_date =
-                Some(parse_number(&self.settle_date).expect("settle_date should be a number"));
+            settle_date = Some(
+                utils::parse_number(&self.settle_date).expect("settle_date should be a number"),
+            );
         }
 
         let status = match self.state {
@@ -177,19 +177,14 @@ impl TryInto<Invoice> for InvoiceResponse {
         let invoice = Invoice {
             bolt11: self.payment_request,
             memo: self.memo,
-            amount: parse_number(&self.value).expect("amt_paid_sat should be a number"),
-            amount_msat: parse_number(&self.value_msat).expect("amt_paid_msat should be a number"),
-            pre_image: Some(
-                b64_to_hex(&self.r_preimage)
-                    .expect("coudln't convert r_preimage from base64 to hex"),
-            ),
-            payment_hash: b64_to_hex(&self.r_hash)
-                .expect("coudln't convert r_hash from base64 to hex"),
+            amount: utils::parse_number(&self.value)?,
+            amount_msat: utils::parse_number(&self.value_msat)?,
+            pre_image: Some(utils::b64_to_hex(&self.r_preimage)?),
+            payment_hash: utils::b64_to_hex(&self.r_hash)?,
             settled: self.settled,
             settle_date,
-            creation_date: parse_number(&self.creation_date)
-                .expect("creation_date should be a number"),
-            expiry: parse_number(&self.expiry).expect("expiry should be a number"),
+            creation_date: utils::parse_number(&self.creation_date)?,
+            expiry: utils::parse_number(&self.expiry)?,
             status,
         };
 

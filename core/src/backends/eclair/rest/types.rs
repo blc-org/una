@@ -1,9 +1,6 @@
 #![allow(clippy::from_over_into)]
 
-use crate::{
-    types::*,
-    utils,
-};
+use crate::{types::*, utils};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

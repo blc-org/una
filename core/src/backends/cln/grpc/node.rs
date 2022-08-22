@@ -73,7 +73,8 @@ impl NodeMethods for ClnGrpc {
     async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
         let mut client = self.get_client().await?;
 
-        let payment_hash_hex = hex::decode(payment_hash).map_err(|_| Error::ApiError(String::from("Invalid payment_hash")))?;
+        let payment_hash_hex = hex::decode(payment_hash)
+            .map_err(|_| Error::ApiError(String::from("Invalid payment_hash")))?;
 
         let request = ListinvoicesRequest {
             payment_hash: Some(payment_hash_hex),
