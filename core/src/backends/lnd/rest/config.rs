@@ -23,12 +23,12 @@ impl TryFrom<NodeConfig> for LndRestConfig {
         let tls_certificate = config
             .tls_certificate
             .ok_or_else(|| ConfigError::MissingField("tls_certificate".to_string()))?;
-
         let config = LndRestConfig {
             url,
             macaroon,
             tls_certificate: hex::decode(&tls_certificate)
-                .map_err(|_| ConfigError::ParsingHexError("tls_certificate".to_string()))?,
+                .map_err(|_| ConfigError::ParsingHexError("tls_certificate".to_string()))
+                .unwrap(),
         };
 
         Ok(config)

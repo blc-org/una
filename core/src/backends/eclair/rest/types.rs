@@ -5,7 +5,6 @@ use serde_json::Value;
 
 use crate::error::Error;
 use crate::{types::*, utils};
-
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
     #[serde(rename = "error")]
@@ -266,5 +265,79 @@ impl TryInto<PayInvoiceResult> for PayInvoiceResponse {
         };
 
         Ok(result)
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct DecodeInvoiceRequest {
+    invoice: String,
+}
+
+impl From<String> for DecodeInvoiceRequest {
+    fn from(invoice: String) -> DecodeInvoiceRequest {
+        return DecodeInvoiceRequest { invoice };
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Activated {
+    pub var_onion_optin: Option<String>,
+    pub payment_secret: Option<String>,
+    pub basic_mpp: Option<String>,
+    pub option_payment_metadata: Option<String>,
+}
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Features {
+    pub activated: Activated,
+    pub unknown: Vec<Value>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecodeInvoiceResponse {
+    pub prefix: String,
+    pub timestamp: i64,
+    pub node_id: String,
+    pub serialized: String,
+    pub description: String,
+    pub payment_hash: String,
+    pub expiry: i32,
+    pub min_final_cltv_expiry: u32,
+    pub amount: u64,
+    pub features: Features,
+    pub routing_info: Vec<Value>,
+}
+
+fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivationStatus {
+    match feature_status_str.unwrap_or(String::new()).as_ref() {
+        "optional" => FeatureActivationStatus::Optional,
+        "mandatory" => FeatureActivationStatus::Mandatory,
+        _ => FeatureActivationStatus::Unknown,
+    }
+}
+
+impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    fn into(self) -> DecodeInvoiceResult {
+        let invoices_feature = InvoiceFeatures {
+            payment_secret: extract_feature_status(self.features.activated.payment_secret),
+            basic_mpp: extract_feature_status(self.features.activated.basic_mpp),
+            option_payment_metadata: extract_feature_status(
+                self.features.activated.option_payment_metadata,
+            ),
+            var_onion_optin: extract_feature_status(self.features.activated.var_onion_optin),
+        };
+
+        DecodeInvoiceResult {
+            creation_date: self.timestamp,
+            amount: utils::get_amount_sat(Some(self.amount), None),
+            amount_msat: Some(self.amount),
+            destination: Some(self.node_id),
+            memo: Some(self.description),
+            payment_hash: self.payment_hash,
+            expiry: self.expiry,
+            min_final_cltv_expiry: self.min_final_cltv_expiry,
+            features: Some(invoices_feature),
+            route_hints: Vec::new(),
+        }
     }
 }

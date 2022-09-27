@@ -1,4 +1,5 @@
 import { Node } from "./index.js";
+import "ava";
 
 const config = {
   lnd: {
@@ -55,6 +56,13 @@ async function test_node(backend, config) {
     })
     .then((result) => console.log(result))
     .catch((err) => console.log(err.message, err.code));
+
+  node
+    .decodeInvoice(
+      "lnbcrt100u1p3n9m8asp5ytfumpvwnehfma235xn50vzffxtrestqzk4qn2up2anwkpucu4nqpp5avpr4r37qpltsjhz543cnnndnz6dqnagepkd35z06lk32ahr7rfsdpz2phkcctjypykuan0d93k2grxdaezqcn0vgxqyjw5qcqp29qyysgqnaa0dtkl4tj3kj8p887pepyjqxhwmwgl5f5xc3mqne6apg2lfg0zj04d79827h5c4ned2m45uc0jl4n63t3l6vvs0pkfdudy2gmmmvqp5qreyk"
+    )
+    .then((res) => console.log(res))
+    .catch((err) => console.error(err.message, err.code));
 }
 
 // test_node("LndRest", config.lnd.rest);

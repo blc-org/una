@@ -9,6 +9,7 @@ export class Node {
   createInvoice(invoice: CreateInvoiceParams): Promise<CreateInvoiceResult>
   getInfo(): Promise<NodeInfo>
   payInvoice(invoice: PayInvoiceParams): Promise<PayInvoiceResult>
+  decodeInvoice(invoice: String): Promise<DecodeInvoiceResult>
 }
 
 export type Backend = "LndRest" | "LndGrpc" | "ClnGrpc" | "EclairRest" | "InvalidBackend";
@@ -35,6 +36,36 @@ export interface CreateInvoiceResult {
   label?: string | null;
   payment_hash: string;
   payment_request: string;
+}
+
+export type FeatureActivationStatus = "Mandatory" | "Optional" | "Unknown";
+
+export interface DecodeInvoiceResult {
+  amount?: number | null;
+  amount_msat?: number | null;
+  creation_date: number;
+  destination?: string | null;
+  expiry: number;
+  features?: InvoiceFeatures | null;
+  memo?: string | null;
+  min_final_cltv_expiry: number;
+  payment_hash: string;
+  route_hints: RoutingHint[];
+}
+
+export interface InvoiceFeatures {
+  basic_mpp: FeatureActivationStatus;
+  option_payment_metadata: FeatureActivationStatus;
+  payment_secret: FeatureActivationStatus;
+  var_onion_optin: FeatureActivationStatus;
+}
+
+export interface RoutingHint {
+  chan_id: number;
+  cltv_expiry_delta: number;
+  fee_base_msat: number;
+  fee_proportional_millionths: number;
+  node_id: string;
 }
 
 export type Network =

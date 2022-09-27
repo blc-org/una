@@ -1,7 +1,9 @@
 #![allow(clippy::from_over_into)]
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 use crate::error::Error;
 use crate::{types::*, utils};
@@ -251,5 +253,67 @@ impl TryInto<PayInvoiceResult> for SendPaymentSyncResponse {
         };
 
         Ok(result)
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DecodeInvoiceResponse {
+    pub destination: String,
+    pub payment_hash: String,
+    pub num_satoshis: String,
+    pub timestamp: String,
+    pub expiry: String,
+    pub description: String,
+    pub description_hash: String,
+    pub fallback_addr: String,
+    pub cltv_expiry: String,
+    pub route_hints: Vec<Value>,
+    pub payment_addr: String,
+    pub num_msat: String,
+    pub features: HashMap<u16, DecodeInvoiceFeature>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DecodeInvoiceFeature {
+    pub name: String,
+    pub is_required: bool,
+    pub is_known: bool,
+}
+
+fn extract_feature_status(feature: Option<&DecodeInvoiceFeature>) -> FeatureActivationStatus {
+    if feature.is_none() {
+        return FeatureActivationStatus::Unknown;
+    }
+
+    let _feature = feature.unwrap();
+
+    match (_feature.is_known, _feature.is_required) {
+        (true, true) => FeatureActivationStatus::Mandatory,
+        (true, false) => FeatureActivationStatus::Optional,
+        _ => FeatureActivationStatus::Unknown,
+    }
+}
+
+impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    fn into(self) -> DecodeInvoiceResult {
+        let invoice_features = InvoiceFeatures {
+            payment_secret: extract_feature_status(self.features.get(&14)),
+            basic_mpp: extract_feature_status(self.features.get(&17)),
+            option_payment_metadata: FeatureActivationStatus::Unknown,
+            var_onion_optin: extract_feature_status(self.features.get(&9)),
+        };
+
+        DecodeInvoiceResult {
+            creation_date: self.timestamp.parse().unwrap(),
+            amount: Some(self.num_satoshis.parse().unwrap()),
+            amount_msat: Some(self.num_msat.parse().unwrap()),
+            destination: Some(self.destination),
+            memo: Some(self.description),
+            payment_hash: self.payment_hash,
+            expiry: self.expiry.parse().unwrap(),
+            min_final_cltv_expiry: self.cltv_expiry.parse().unwrap(),
+            features: Some(invoice_features),
+            route_hints: Vec::new(),
+        }
     }
 }

@@ -1,13 +1,15 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, DecodeInvoiceResult, NodeInfo, PayInvoiceParams,
+    PayInvoiceResult,
 };
 
 use super::config::EclairRestConfig;
 use super::types::{
-    ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, GetChannelsResponse,
-    GetInfoResponse, PayInvoiceRequest, PayInvoiceResponse,
+    ApiError, ChannelState, CreateInvoiceRequest, CreateInvoiceResponse, DecodeInvoiceRequest,
+    DecodeInvoiceResponse, GetChannelsResponse, GetInfoResponse, PayInvoiceRequest,
+    PayInvoiceResponse,
 };
 
 pub struct EclairRest {
@@ -118,5 +120,17 @@ impl NodeMethods for EclairRest {
         let data: PayInvoiceResponse = response.json().await?;
 
         Ok(data.try_into()?)
+    }
+
+    async fn decode_invoice(&self, invoice: String) -> Result<DecodeInvoiceResult, Error> {
+        let url = format!("{}/parseinvoice", self.config.url);
+
+        let request: DecodeInvoiceRequest = invoice.into();
+        let mut response = self.client.post(&url).form(&request).send().await?;
+
+        response = Self::on_response(response).await?;
+        let data: DecodeInvoiceResponse = response.json().await?;
+
+        Ok(data.into())
     }
 }

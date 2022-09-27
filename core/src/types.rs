@@ -133,3 +133,41 @@ pub struct PayInvoiceResult {
     pub payment_preimage: String,
     pub fees_msat: Option<u64>,
 }
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub enum FeatureActivationStatus {
+    Mandatory,
+    Optional,
+    Unknown,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct InvoiceFeatures {
+    pub payment_secret: FeatureActivationStatus,
+    pub basic_mpp: FeatureActivationStatus,
+    pub option_payment_metadata: FeatureActivationStatus,
+    pub var_onion_optin: FeatureActivationStatus,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct RoutingHint {
+    pub node_id: String,
+    pub chan_id: u64,
+    pub fee_base_msat: u32,
+    pub fee_proportional_millionths: u32,
+    pub cltv_expiry_delta: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct DecodeInvoiceResult {
+    pub creation_date: i64,
+    pub amount: Option<u64>,
+    pub amount_msat: Option<u64>,
+    pub destination: Option<String>,
+    pub memo: Option<String>,
+    pub payment_hash: String,
+    pub expiry: i32,
+    pub min_final_cltv_expiry: u32,
+    pub features: Option<InvoiceFeatures>,
+    pub route_hints: Vec<RoutingHint>,
+}

@@ -11,8 +11,8 @@ use una_core::{
     },
     node::{Node, NodeMethods},
     types::{
-        Backend, CreateInvoiceParams, CreateInvoiceResult, NodeConfig, NodeInfo, PayInvoiceParams,
-        PayInvoiceResult,
+        Backend, CreateInvoiceParams, CreateInvoiceResult, DecodeInvoiceResult, NodeConfig,
+        NodeInfo, PayInvoiceParams, PayInvoiceResult,
     },
 };
 
@@ -102,6 +102,22 @@ impl PyNode {
             let result = node.lock().await.pay_invoice(invoice).await.or_py_error()?;
             let result =
                 Python::with_gil(|py| pythonize::<PayInvoiceResult>(py, &result).or_py_error())?;
+            Ok(result)
+        })
+    }
+
+    pub fn decode_invoice<'p>(&self, py: Python<'p>, invoice_str: String) -> PyResult<&'p PyAny> {
+        let node = self.0.clone();
+
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let result = node
+                .lock()
+                .await
+                .decode_invoice(invoice_str)
+                .await
+                .or_py_error()?;
+            let result =
+                Python::with_gil(|py| pythonize::<DecodeInvoiceResult>(py, &result).or_py_error())?;
             Ok(result)
         })
     }

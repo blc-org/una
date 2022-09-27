@@ -1,7 +1,10 @@
 #![allow(clippy::from_over_into)]
 
-use crate::{types::*, utils};
+use std::{convert::TryInto, time::UNIX_EPOCH};
+
+use crate::{error::Error, types::*, utils};
 use cuid;
+use lightning_invoice::InvoiceDescription;
 
 include!(concat!(env!("PROTOBUFS_DIR"), "/cln.rs"));
 
@@ -103,5 +106,41 @@ impl Into<PayInvoiceResult> for PayResponse {
             payment_hash: hex::encode(self.payment_hash),
             fees_msat,
         }
+    }
+}
+
+impl TryInto<DecodeInvoiceResult> for String {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Error> {
+        // DecodeInvoice gRPC command is not implemented yet on CLN, so we need to use an external parser instead
+        let parsed_invoice = str::parse::<lightning_invoice::Invoice>(self.as_ref())
+            .expect("provided invoice is not a valid bolt11 invoice");
+
+        let memo = match parsed_invoice.description() {
+            InvoiceDescription::Direct(direct) => Some(direct.to_string()),
+            InvoiceDescription::Hash(_hash) => {
+                unimplemented!("Hash transcription is not supported yet")
+            }
+        };
+
+        let invoice = DecodeInvoiceResult {
+            creation_date: parsed_invoice
+                .timestamp()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as i64,
+            amount: utils::get_amount_sat(None, parsed_invoice.amount_milli_satoshis()),
+            amount_msat: parsed_invoice.amount_milli_satoshis(),
+            destination: None,
+            memo,
+            payment_hash: parsed_invoice.payment_hash().to_string(),
+            expiry: parsed_invoice.expiry_time().as_millis() as i32,
+            min_final_cltv_expiry: parsed_invoice.min_final_cltv_expiry() as u32,
+            features: None,
+            route_hints: Vec::new(),
+        };
+
+        Ok(invoice)
     }
 }

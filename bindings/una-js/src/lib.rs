@@ -123,4 +123,25 @@ impl JsNode {
             |&mut env, payreq| Ok(env.to_js_value(&payreq)),
         )
     }
+
+    #[napi(
+        ts_args_type = "invoice: String",
+        ts_return_type = "Promise<DecodeInvoiceResult>"
+    )]
+    pub fn decode_invoice(&self, env: Env, invoice_str: String) -> Result<JsObject> {
+        let node = self.0.clone();
+
+        env.execute_tokio_future(
+            async move {
+                let invoice = node
+                    .lock()
+                    .await
+                    .decode_invoice(invoice_str)
+                    .await
+                    .or_napi_error()?;
+                Ok(invoice)
+            },
+            |&mut env, invoice| Ok(env.to_js_value(&invoice)),
+        )
+    }
 }
