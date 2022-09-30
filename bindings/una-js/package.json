@@ -37,5 +37,8 @@
     "version": "napi version",
     "generate-types": "cargo run --manifest-path ../../schemas/Cargo.toml schemas && node generate-types.js"
   },
-  "packageManager": "yarn@3.2.2"
+  "packageManager": "yarn@3.2.2",
+  "dependencies": {
+    "ava": "^4.3.3"
+  }
 }
