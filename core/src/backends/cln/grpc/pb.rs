@@ -3,7 +3,7 @@
 use crate::{types::*, utils};
 use cuid;
 
-tonic::include_proto!("cln");
+include!(concat!(env!("PROTOBUFS_DIR"), "/cln.rs"));
 
 impl From<CreateInvoiceParams> for InvoiceRequest {
     fn from(params: CreateInvoiceParams) -> Self {
