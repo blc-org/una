@@ -107,6 +107,6 @@ impl NodeMethods for LndRest {
 
         let data: DecodeInvoiceResponse = response.json().await?;
 
-        Ok(data.into())
+        Ok(data.try_into()?)
     }
 }

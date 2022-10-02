@@ -4,7 +4,7 @@ use std::{convert::TryInto, time::UNIX_EPOCH};
 
 use crate::{error::Error, types::*, utils};
 use cuid;
-use lightning_invoice::InvoiceDescription;
+use lightning_invoice;
 
 include!(concat!(env!("PROTOBUFS_DIR"), "/cln.rs"));
 
@@ -118,8 +118,8 @@ impl TryInto<DecodeInvoiceResult> for String {
             .expect("provided invoice is not a valid bolt11 invoice");
 
         let memo = match parsed_invoice.description() {
-            InvoiceDescription::Direct(direct) => Some(direct.to_string()),
-            InvoiceDescription::Hash(_hash) => {
+            lightning_invoice::InvoiceDescription::Direct(direct) => Some(direct.to_string()),
+            lightning_invoice::InvoiceDescription::Hash(_hash) => {
                 unimplemented!("Hash transcription is not supported yet")
             }
         };
@@ -128,7 +128,7 @@ impl TryInto<DecodeInvoiceResult> for String {
             creation_date: parsed_invoice
                 .timestamp()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .map_err(|_| Error::ConversionError(String::from("could not convert error")))?
                 .as_millis() as i64,
             amount: utils::get_amount_sat(None, parsed_invoice.amount_milli_satoshis()),
             amount_msat: parsed_invoice.amount_milli_satoshis(),

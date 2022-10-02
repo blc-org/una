@@ -78,7 +78,7 @@ impl NodeMethods for ClnGrpc {
         Ok(response.into())
     }
 
-    async fn decode_invoice(&self, _invoice_str: String) -> Result<DecodeInvoiceResult, Error> {
-        Ok(_invoice_str.try_into()?)
+    async fn decode_invoice(&self, invoice_str: String) -> Result<DecodeInvoiceResult, Error> {
+        Ok(invoice_str.try_into()?)
     }
 }

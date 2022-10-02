@@ -279,20 +279,20 @@ impl From<String> for DecodeInvoiceRequest {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Activated {
     pub var_onion_optin: Option<String>,
     pub payment_secret: Option<String>,
     pub basic_mpp: Option<String>,
     pub option_payment_metadata: Option<String>,
 }
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Features {
     pub activated: Activated,
     pub unknown: Vec<Value>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DecodeInvoiceResponse {
     pub prefix: String,
@@ -309,10 +309,13 @@ pub struct DecodeInvoiceResponse {
 }
 
 fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivationStatus {
-    match feature_status_str.unwrap_or(String::new()).as_ref() {
-        "optional" => FeatureActivationStatus::Optional,
-        "mandatory" => FeatureActivationStatus::Mandatory,
-        _ => FeatureActivationStatus::Unknown,
+    match feature_status_str {
+        None => FeatureActivationStatus::Unknown,
+        Some(f) => match f.as_str() {
+            "optional" => FeatureActivationStatus::Optional,
+            "mandatory" => FeatureActivationStatus::Mandatory,
+            _ => FeatureActivationStatus::Unknown,
+        },
     }
 }
 

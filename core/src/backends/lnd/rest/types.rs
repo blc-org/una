@@ -256,7 +256,7 @@ impl TryInto<PayInvoiceResult> for SendPaymentSyncResponse {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct DecodeInvoiceResponse {
     pub destination: String,
     pub payment_hash: String,
@@ -267,13 +267,13 @@ pub struct DecodeInvoiceResponse {
     pub description_hash: String,
     pub fallback_addr: String,
     pub cltv_expiry: String,
-    pub route_hints: Vec<Value>,
     pub payment_addr: String,
     pub num_msat: String,
     pub features: HashMap<u16, DecodeInvoiceFeature>,
+    pub route_hints: Vec<Value>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct DecodeInvoiceFeature {
     pub name: String,
     pub is_required: bool,
@@ -281,21 +281,20 @@ pub struct DecodeInvoiceFeature {
 }
 
 fn extract_feature_status(feature: Option<&DecodeInvoiceFeature>) -> FeatureActivationStatus {
-    if feature.is_none() {
-        return FeatureActivationStatus::Unknown;
-    }
-
-    let _feature = feature.unwrap();
-
-    match (_feature.is_known, _feature.is_required) {
-        (true, true) => FeatureActivationStatus::Mandatory,
-        (true, false) => FeatureActivationStatus::Optional,
-        _ => FeatureActivationStatus::Unknown,
+    match feature {
+        None => FeatureActivationStatus::Unknown,
+        Some(f) => match (f.is_known, f.is_required) {
+            (true, true) => FeatureActivationStatus::Mandatory,
+            (true, false) => FeatureActivationStatus::Optional,
+            _ => FeatureActivationStatus::Unknown,
+        },
     }
 }
 
-impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
-    fn into(self) -> DecodeInvoiceResult {
+impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Self::Error> {
         let invoice_features = InvoiceFeatures {
             payment_secret: extract_feature_status(self.features.get(&14)),
             basic_mpp: extract_feature_status(self.features.get(&17)),
@@ -303,17 +302,19 @@ impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
             var_onion_optin: extract_feature_status(self.features.get(&9)),
         };
 
-        DecodeInvoiceResult {
-            creation_date: self.timestamp.parse().unwrap(),
-            amount: Some(self.num_satoshis.parse().unwrap()),
-            amount_msat: Some(self.num_msat.parse().unwrap()),
+        let result = DecodeInvoiceResult {
+            creation_date: self.timestamp.parse()?,
+            amount: Some(self.num_satoshis.parse()?),
+            amount_msat: Some(self.num_msat.parse()?),
             destination: Some(self.destination),
             memo: Some(self.description),
             payment_hash: self.payment_hash,
-            expiry: self.expiry.parse().unwrap(),
-            min_final_cltv_expiry: self.cltv_expiry.parse().unwrap(),
+            expiry: self.expiry.parse()?,
+            min_final_cltv_expiry: self.cltv_expiry.parse()?,
             features: Some(invoice_features),
             route_hints: Vec::new(),
-        }
+        };
+
+        Ok(result)
     }
 }
