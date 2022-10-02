@@ -2,3 +2,5 @@
 /Cargo.lock
 /.DS_Store
 .vscode/
+/proto/out/*
+!/proto/out/.gitkeep
