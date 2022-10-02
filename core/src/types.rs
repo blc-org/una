@@ -150,7 +150,13 @@ pub struct InvoiceFeatures {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+
 pub struct RoutingHint {
+    pub hop_ints: Vec<HopHint>,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct HopHint {
     pub node_id: String,
     pub chan_id: u64,
     pub fee_base_msat: u32,

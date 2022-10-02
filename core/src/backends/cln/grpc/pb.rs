@@ -138,7 +138,23 @@ impl TryInto<DecodeInvoiceResult> for String {
             expiry: parsed_invoice.expiry_time().as_millis() as i32,
             min_final_cltv_expiry: parsed_invoice.min_final_cltv_expiry() as u32,
             features: None,
-            route_hints: Vec::new(),
+            route_hints: parsed_invoice
+                .route_hints()
+                .into_iter()
+                .map(|route_hint| RoutingHint {
+                    hop_ints: route_hint
+                        .0
+                        .into_iter()
+                        .map(|hop_int| HopHint {
+                            node_id: hop_int.src_node_id.to_string(),
+                            chan_id: hop_int.short_channel_id,
+                            fee_base_msat: hop_int.fees.base_msat,
+                            fee_proportional_millionths: hop_int.fees.proportional_millionths,
+                            cltv_expiry_delta: hop_int.cltv_expiry_delta as u32,
+                        })
+                        .collect(),
+                })
+                .collect(),
         };
 
         Ok(invoice)

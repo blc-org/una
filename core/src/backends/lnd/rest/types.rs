@@ -5,6 +5,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
+use crate::backends::eclair::rest::types;
 use crate::error::Error;
 use crate::{types::*, utils};
 
@@ -270,7 +271,7 @@ pub struct DecodeInvoiceResponse {
     pub payment_addr: String,
     pub num_msat: String,
     pub features: HashMap<u16, DecodeInvoiceFeature>,
-    pub route_hints: Vec<Value>,
+    pub route_hints: Vec<DecodeInvoiceRoutingHint>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -278,6 +279,19 @@ pub struct DecodeInvoiceFeature {
     pub name: String,
     pub is_required: bool,
     pub is_known: bool,
+}
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceRoutingHint {
+    pub hop_ints: Vec<HopHint>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceHopHint {
+    pub node_id: String,
+    pub chan_id: u64,
+    pub fee_base_msat: u32,
+    pub fee_proportional_millionths: u32,
+    pub cltv_expiry_delta: u32,
 }
 
 fn extract_feature_status(feature: Option<&DecodeInvoiceFeature>) -> FeatureActivationStatus {
@@ -312,7 +326,23 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
             expiry: self.expiry.parse()?,
             min_final_cltv_expiry: self.cltv_expiry.parse()?,
             features: Some(invoice_features),
-            route_hints: Vec::new(),
+            route_hints: self
+                .route_hints
+                .into_iter()
+                .map(|route_hint| RoutingHint {
+                    hop_ints: route_hint
+                        .hop_ints
+                        .into_iter()
+                        .map(|hop_hint| HopHint {
+                            node_id: hop_hint.node_id,
+                            chan_id: hop_hint.chan_id,
+                            fee_base_msat: hop_hint.fee_base_msat,
+                            fee_proportional_millionths: hop_hint.fee_proportional_millionths,
+                            cltv_expiry_delta: hop_hint.cltv_expiry_delta,
+                        })
+                        .collect(),
+                })
+                .collect(),
         };
 
         Ok(result)
