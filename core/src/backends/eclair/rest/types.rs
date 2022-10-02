@@ -1,10 +1,10 @@
 #![allow(clippy::from_over_into)]
 
+use crate::{types::*, utils};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
-use crate::{types::*, utils};
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -82,6 +82,101 @@ pub enum ChannelState {
     Offline,
     Closed,
     Pending,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Chain {
+    pub chain: String,
+    pub network: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Feature {
+    pub name: String,
+    pub is_required: bool,
+    pub is_known: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InvoiceResponse {
+    pub payment_request: PaymentRequestResponse,
+    pub payment_preimage: Option<String>,
+    pub status: InvoiceStatusResponse,
+    pub created_at: InvoiceDateResponse,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaymentRequestResponse {
+    pub prefix: String,
+    pub timestamp: i64,
+    pub node_id: String,
+    pub serialized: String,
+    pub description: String,
+    pub payment_hash: String,
+    pub payment_metadata: String,
+    pub expiry: u64,
+    pub min_final_cltv_expiry: u32,
+    pub amount: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InvoiceStatusTypeResponse {
+    Received,
+    Pending,
+    Expired,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InvoiceDateResponse {
+    pub unix: u64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InvoiceStatusResponse {
+    #[serde(rename = "type")]
+    pub type_field: InvoiceStatusTypeResponse,
+    pub amount: Option<u64>,
+    pub received_at: Option<InvoiceDateResponse>,
+}
+
+impl Into<Invoice> for InvoiceResponse {
+    fn into(self) -> Invoice {
+        let mut settle_date: Option<u64> = None;
+        let settled = match self.status.type_field {
+            InvoiceStatusTypeResponse::Received => match self.status.received_at {
+                Some(e) => {
+                    settle_date = Some(e.unix);
+                    true
+                }
+                None => true,
+            },
+            _ => false,
+        };
+
+        let status = match self.status.type_field {
+            InvoiceStatusTypeResponse::Received => crate::types::InvoiceStatus::Settled,
+            InvoiceStatusTypeResponse::Pending => crate::types::InvoiceStatus::Pending,
+            InvoiceStatusTypeResponse::Expired => crate::types::InvoiceStatus::Cancelled,
+        };
+
+        Invoice {
+            bolt11: self.payment_request.serialized,
+            memo: self.payment_request.description,
+            amount: utils::msat_to_sat(self.payment_request.amount),
+            amount_msat: self.payment_request.amount,
+            pre_image: self.payment_preimage,
+            payment_hash: self.payment_request.payment_hash,
+            settled,
+            settle_date,
+            creation_date: self.created_at.unix,
+            expiry: self.payment_request.expiry,
+            status,
+        }
+    }
 }
 
 impl Into<NodeInfo> for GetInfoResponse {

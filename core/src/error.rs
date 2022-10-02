@@ -33,6 +33,7 @@ pub enum Error {
     ApiError(String),
     UnknownError(String),
     ConversionError(String),
+    ParseNumberError(String),
 }
 
 impl Display for Error {
@@ -47,6 +48,7 @@ impl Display for Error {
             Error::ApiError(err) => err.clone(),
             Error::ConversionError(err) => err.clone(),
             Error::UnknownError(err) => err.clone(),
+            Error::ParseNumberError(err) => err.clone(),
         };
 
         write!(f, "{}", str)

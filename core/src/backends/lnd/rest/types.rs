@@ -1,12 +1,12 @@
 #![allow(clippy::from_over_into)]
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::error::Error;
 use crate::{types::*, utils};
 
 pub type Base64String = String;
+use crate::error::Error;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -129,6 +129,66 @@ impl Into<NodeInfo> for GetInfoResponse {
                 pending: self.num_pending_channels,
             },
         }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InvoiceResponse {
+    memo: String,
+    r_preimage: String,
+    r_hash: String,
+    value: String,
+    value_msat: String,
+    settled: bool,
+    creation_date: String,
+    settle_date: String,
+    payment_request: String,
+    expiry: String,
+    state: InvoiceStateResponse,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum InvoiceStateResponse {
+    Open,
+    Settled,
+    Cancelled,
+    Accepted,
+}
+
+impl TryInto<Invoice> for InvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Invoice, Error> {
+        let mut settle_date: Option<u64> = None;
+        if self.settled {
+            settle_date = Some(
+                utils::parse_number(&self.settle_date).expect("settle_date should be a number"),
+            );
+        }
+
+        let status = match self.state {
+            InvoiceStateResponse::Open => crate::types::InvoiceStatus::Pending,
+            InvoiceStateResponse::Settled => crate::types::InvoiceStatus::Settled,
+            InvoiceStateResponse::Cancelled => crate::types::InvoiceStatus::Cancelled,
+            InvoiceStateResponse::Accepted => crate::types::InvoiceStatus::Accepted,
+        };
+
+        let invoice = Invoice {
+            bolt11: self.payment_request,
+            memo: self.memo,
+            amount: utils::parse_number(&self.value)?,
+            amount_msat: utils::parse_number(&self.value_msat)?,
+            pre_image: Some(utils::b64_to_hex(&self.r_preimage)?),
+            payment_hash: utils::b64_to_hex(&self.r_hash)?,
+            settled: self.settled,
+            settle_date,
+            creation_date: utils::parse_number(&self.creation_date)?,
+            expiry: utils::parse_number(&self.expiry)?,
+            status,
+        };
+
+        Ok(invoice)
     }
 }
 

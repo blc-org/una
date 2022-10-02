@@ -2,8 +2,8 @@ use schemars::{schema::RootSchema, schema_for};
 use std::env;
 
 use una_core::types::{
-    Backend, ChannelStats, CreateInvoiceParams, CreateInvoiceResult, Network, NodeConfig, NodeInfo,
-    PayInvoiceParams, PayInvoiceResult,
+    Backend, ChannelStats, CreateInvoiceParams, CreateInvoiceResult, Invoice, Network, NodeConfig,
+    NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 fn write_schema(dir: &std::path::Path, name: &str, schema: &RootSchema) -> std::io::Result<()> {
@@ -41,6 +41,9 @@ fn main() {
 
     let schema = schema_for!(CreateInvoiceResult);
     write_schema(&dir, "create_invoice_result", &schema).unwrap();
+
+    let schema = schema_for!(Invoice);
+    write_schema(&dir, "invoice", &schema).unwrap();
 
     let schema = schema_for!(PayInvoiceParams);
     write_schema(&dir, "pay_invoice_params", &schema).unwrap();

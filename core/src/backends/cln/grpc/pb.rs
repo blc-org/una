@@ -1,6 +1,12 @@
 #![allow(clippy::from_over_into)]
 
-use crate::{types::*, utils};
+use std::time::UNIX_EPOCH;
+
+use crate::{
+    error::Error,
+    types::*,
+    utils::{self, msat_to_sat},
+};
 use cuid;
 
 include!(concat!(env!("PROTOBUFS_DIR"), "/cln.rs"));
@@ -64,6 +70,66 @@ impl Into<NodeInfo> for GetinfoResponse {
                 pending: self.num_pending_channels as i64,
             },
         }
+    }
+}
+
+impl TryInto<Invoice> for ListinvoicesResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<Invoice, Error> {
+        let invoice: &ListinvoicesInvoices = self.invoices.get(0).expect("No invoice found");
+
+        let bolt11 = match &invoice.bolt11 {
+            Some(bolt11) => bolt11.as_ref(),
+            None => return Err(Error::ApiError(String::from("bolt11 missing"))),
+        };
+
+        let decoded_invoice = str::parse::<lightning_invoice::Invoice>(bolt11)
+            .expect("bolt11 is not a valid invoice");
+
+        let mut settle_date: Option<u64> = None;
+        let settled = match invoice.status {
+            1 => match invoice.paid_at {
+                Some(e) => {
+                    settle_date = Some(e);
+                    true
+                }
+                None => true,
+            },
+            _ => false,
+        };
+
+        let status = match invoice.status {
+            0 => crate::types::InvoiceStatus::Pending,
+            1 => crate::types::InvoiceStatus::Settled,
+            2 => crate::types::InvoiceStatus::Cancelled,
+            _ => crate::types::InvoiceStatus::Accepted,
+        };
+
+        let amount_msat = &decoded_invoice
+            .amount_milli_satoshis()
+            .ok_or_else(|| Error::ApiError(String::from("amount_milli_satoshis missing")))?;
+
+        Ok(Invoice {
+            bolt11: String::from(bolt11),
+            memo: match &invoice.description {
+                Some(description) => String::from(description),
+                None => return Err(Error::ApiError(String::from("description missing"))),
+            },
+            amount: msat_to_sat(*amount_msat),
+            amount_msat: *amount_msat,
+            pre_image: invoice.payment_preimage.as_ref().map(hex::encode),
+            payment_hash: decoded_invoice.payment_hash().to_string(),
+            settled,
+            settle_date,
+            creation_date: decoded_invoice
+                .timestamp()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            expiry: decoded_invoice.expiry_time().as_secs(),
+            status,
+        })
     }
 }
 

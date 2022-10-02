@@ -1,4 +1,7 @@
-use std::ops::{Div, Mul};
+use std::{
+    ops::{Div, Mul},
+    str::FromStr,
+};
 
 use crate::error::Error;
 
@@ -41,4 +44,10 @@ where
 pub fn b64_to_hex(b64: &str) -> Result<String, Error> {
     let bytes = base64::decode(b64)?;
     Ok(hex::encode(&bytes))
+}
+
+pub fn parse_number<T: FromStr>(text: &str) -> Result<T, Error> {
+    text.trim()
+        .parse::<T>()
+        .map_err(|_| Error::ParseNumberError(String::from("Could not parse number")))
 }

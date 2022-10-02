@@ -1,13 +1,13 @@
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, Invoice, NodeInfo, PayInvoiceParams, PayInvoiceResult,
 };
 
 use super::config::LndRestConfig;
 use super::types::{
-    ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse, SendPaymentSyncRequest,
-    SendPaymentSyncResponse,
+    ApiError, CreateInvoiceRequest, CreateInvoiceResponse, GetInfoResponse, InvoiceResponse,
+    SendPaymentSyncRequest, SendPaymentSyncResponse,
 };
 
 pub struct LndRest {
@@ -93,6 +93,18 @@ impl NodeMethods for LndRest {
         response = Self::on_response(response).await?;
 
         let data: SendPaymentSyncResponse = response.json().await?;
+
+        Ok(data.try_into()?)
+    }
+
+    async fn get_invoice(&self, payment_hash: String) -> Result<Invoice, Error> {
+        let url = format!("{}/v1/invoice/{}", self.config.url, payment_hash);
+
+        let mut response = self.client.get(&url).send().await?;
+
+        response = Self::on_response(response).await?;
+
+        let data: InvoiceResponse = response.json().await?;
 
         Ok(data.try_into()?)
     }

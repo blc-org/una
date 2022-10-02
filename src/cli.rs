@@ -87,6 +87,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .help("description"),
                 ),
         )
+        .subcommand(
+            Command::new("getinvoice")
+                .about("get invoice infos from the node")
+                .arg(
+                    Arg::new("payment_hash")
+                        .required(true)
+                        .index(1)
+                        .help("payment hash in hex format"),
+                ),
+        )
         .get_matches();
 
     let backend: Backend = matches
@@ -139,6 +149,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .await
                 .unwrap();
+
+            println!("{:}", serde_json::to_string_pretty(&invoice).unwrap());
+        }
+        "getinvoice" => {
+            let args = command_args;
+            let payment_hash: &str = args
+                .value_of("payment_hash")
+                .expect("payment_hash is a required field");
+
+            let invoice = node.get_invoice(String::from(payment_hash)).await.unwrap();
 
             println!("{:}", serde_json::to_string_pretty(&invoice).unwrap());
         }

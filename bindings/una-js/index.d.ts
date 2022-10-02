@@ -8,6 +8,7 @@ export class Node {
   constructor(backend: Backend, config: NodeConfig)
   createInvoice(invoice: CreateInvoiceParams): Promise<CreateInvoiceResult>
   getInfo(): Promise<NodeInfo>
+  getInvoice(payementHash: String): Promise<Invoice>
   payInvoice(invoice: PayInvoiceParams): Promise<PayInvoiceResult>
 }
 
@@ -35,6 +36,22 @@ export interface CreateInvoiceResult {
   label?: string | null;
   payment_hash: string;
   payment_request: string;
+}
+
+export type InvoiceStatus = "Pending" | "Settled" | "Cancelled" | "Accepted";
+
+export interface Invoice {
+  amount: number;
+  amount_msat: number;
+  bolt11: string;
+  creation_date: number;
+  expiry: number;
+  memo: string;
+  payment_hash: string;
+  pre_image?: string | null;
+  settle_date?: number | null;
+  settled: boolean;
+  status: InvoiceStatus;
 }
 
 export type Network =
