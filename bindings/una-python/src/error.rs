@@ -31,7 +31,7 @@ impl From<PyError> for PyErr {
                 }
             }
             UnaError::Unauthorized => PyPermissionError::new_err(message),
-            UnaError::NotImplemented => PyNotImplementedError::new_err(message),
+            UnaError::NotImplemented(message) => PyNotImplementedError::new_err(message),
             UnaError::ConnectionError(message) => {
                 if message.contains("timeout") {
                     PyTimeoutError::new_err(message)

@@ -282,7 +282,7 @@ pub struct DecodeInvoiceFeature {
 }
 #[derive(Debug, Deserialize)]
 pub struct DecodeInvoiceRoutingHint {
-    pub hop_ints: Vec<HopHint>,
+    pub hop_hints: Vec<HopHint>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -321,7 +321,7 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
             amount: Some(self.num_satoshis.parse()?),
             amount_msat: Some(self.num_msat.parse()?),
             destination: Some(self.destination),
-            memo: Some(self.description),
+            memo: self.description,
             payment_hash: self.payment_hash,
             expiry: self.expiry.parse()?,
             min_final_cltv_expiry: self.cltv_expiry.parse()?,
@@ -330,8 +330,8 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
                 .route_hints
                 .into_iter()
                 .map(|route_hint| RoutingHint {
-                    hop_ints: route_hint
-                        .hop_ints
+                    hop_hints: route_hint
+                        .hop_hints
                         .into_iter()
                         .map(|hop_hint| HopHint {
                             node_id: hop_hint.node_id,

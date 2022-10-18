@@ -301,6 +301,7 @@ pub struct DecodeInvoiceResponse {
     pub serialized: String,
     pub description: String,
     pub payment_hash: String,
+    pub payment_metadata: String,
     pub expiry: i32,
     pub min_final_cltv_expiry: u32,
     pub amount: u64,
@@ -332,10 +333,10 @@ impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
 
         DecodeInvoiceResult {
             creation_date: self.timestamp,
-            amount: utils::get_amount_sat(Some(self.amount), None),
+            amount: Some(utils::msat_to_sat(self.amount)),
             amount_msat: Some(self.amount),
             destination: Some(self.node_id),
-            memo: Some(self.description),
+            memo: self.description,
             payment_hash: self.payment_hash,
             expiry: self.expiry,
             min_final_cltv_expiry: self.min_final_cltv_expiry,

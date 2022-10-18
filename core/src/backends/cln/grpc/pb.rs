@@ -114,21 +114,27 @@ impl TryInto<DecodeInvoiceResult> for String {
 
     fn try_into(self) -> Result<DecodeInvoiceResult, Error> {
         // DecodeInvoice gRPC command is not implemented yet on CLN, so we need to use an external parser instead
-        let parsed_invoice = str::parse::<lightning_invoice::Invoice>(self.as_ref())
-            .expect("provided invoice is not a valid bolt11 invoice");
+        let parsed_invoice =
+            str::parse::<lightning_invoice::Invoice>(self.as_ref()).map_err(|_| {
+                Error::ConversionError(String::from(
+                    "provided invoice is not a valid bolt11 invoice",
+                ))
+            })?;
 
         let memo = match parsed_invoice.description() {
-            lightning_invoice::InvoiceDescription::Direct(direct) => Some(direct.to_string()),
-            lightning_invoice::InvoiceDescription::Hash(_hash) => {
-                unimplemented!("Hash transcription is not supported yet")
-            }
-        };
+            lightning_invoice::InvoiceDescription::Direct(direct) => Ok(direct.to_string()),
+            lightning_invoice::InvoiceDescription::Hash(_hash) => Err(Error::NotImplemented(
+                String::from("Hash transcription is not supported yet"),
+            )),
+        }?;
 
         let invoice = DecodeInvoiceResult {
             creation_date: parsed_invoice
                 .timestamp()
                 .duration_since(UNIX_EPOCH)
-                .map_err(|_| Error::ConversionError(String::from("could not convert error")))?
+                .map_err(|_| {
+                    Error::ConversionError(String::from("could not convert creation_date"))
+                })?
                 .as_millis() as i64,
             amount: utils::get_amount_sat(None, parsed_invoice.amount_milli_satoshis()),
             amount_msat: parsed_invoice.amount_milli_satoshis(),
@@ -142,7 +148,7 @@ impl TryInto<DecodeInvoiceResult> for String {
                 .route_hints()
                 .into_iter()
                 .map(|route_hint| RoutingHint {
-                    hop_ints: route_hint
+                    hop_hints: route_hint
                         .0
                         .into_iter()
                         .map(|hop_int| HopHint {

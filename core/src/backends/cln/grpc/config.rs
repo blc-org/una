@@ -33,8 +33,6 @@ impl TryFrom<NodeConfig> for ClnGrpcConfig {
         Uri::from_maybe_shared(url.clone())
             .map_err(|_| ConfigError::InvalidField("url".to_string()))?;
 
-        dbg!(hex::decode(&tls_certificate));
-
         let config = ClnGrpcConfig {
             url,
             tls_certificate: hex::decode(&tls_certificate)
