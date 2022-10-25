@@ -1,4 +1,4 @@
-# Python bindings for UNA
+# Node bindings for UNA
 
 Requires Node.js >=10.
 

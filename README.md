@@ -1,6 +1,6 @@
 # UNA - Universal Node API
 
-Una is a Lightning network node wrapper for multiple backends and for multiple programming languages
+Una is a Lightning network node wrapper for multiple backends and for multiple programming languages.
 
 🚧 Una is still in development.
 
