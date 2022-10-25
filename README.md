@@ -49,19 +49,19 @@ cargo build --bin una-cli
 #### LND
 
 ```sh
-una-cli -- --backend LndRest --url https://127.0.0.1:8081 --macaroon HEX_MACAROON --tls_certificate HEX_CERTIFICATE
+una-cli --backend LndRest --url https://127.0.0.1:8081 --macaroon HEX_MACAROON --tls_certificate HEX_CERTIFICATE
 ```
 
 #### Core Lightning
 
 ```sh
-una-cli -- --backend ClnGrpc --url https://127.0.0.1:11002 --tls_certificate HEX_TSL_CERTIFICATE --tls_client_key HEX_CLIENT_KEY --tls_client_certificate HEX_TLS_CLIENT_CERTIFICATE
+una-cli --backend ClnGrpc --url https://127.0.0.1:11002 --tls_certificate HEX_TSL_CERTIFICATE --tls_client_key HEX_CLIENT_KEY --tls_client_certificate HEX_TLS_CLIENT_CERTIFICATE
 ```
 
 #### Eclair
 
 ```sh
-una-cli -- --backend EclairRest --url http://127.0.0.1:8283 --username USERNAME  --password PASSWORD
+una-cli --backend EclairRest --url http://127.0.0.1:8283 --username USERNAME  --password PASSWORD
 ```
 
 ### Actions
