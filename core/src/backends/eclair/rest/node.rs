@@ -131,6 +131,6 @@ impl NodeMethods for EclairRest {
         response = Self::on_response(response).await?;
         let data: DecodeInvoiceResponse = response.json().await?;
 
-        Ok(data.into())
+        data.try_into()
     }
 }

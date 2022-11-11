@@ -1,10 +1,13 @@
 #![allow(clippy::from_over_into)]
 
+use std::convert::TryInto;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
 use crate::{types::*, utils};
+
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
     #[serde(rename = "error")]
@@ -294,6 +297,16 @@ pub struct Features {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct RoutingInfo {
+    pub node_id: String,
+    pub short_channel_id: String,
+    pub fee_base: u32,
+    pub fee_proportional_millionths: u32,
+    pub cltv_expiry_delta: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DecodeInvoiceResponse {
     pub prefix: String,
     pub timestamp: i64,
@@ -306,7 +319,7 @@ pub struct DecodeInvoiceResponse {
     pub min_final_cltv_expiry: u32,
     pub amount: u64,
     pub features: Features,
-    pub routing_info: Vec<Value>,
+    pub routing_info: Vec<Vec<RoutingInfo>>,
 }
 
 fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivationStatus {
@@ -320,8 +333,10 @@ fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivati
     }
 }
 
-impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
-    fn into(self) -> DecodeInvoiceResult {
+impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Error> {
         let invoices_feature = InvoiceFeatures {
             payment_secret: extract_feature_status(self.features.activated.payment_secret),
             basic_mpp: extract_feature_status(self.features.activated.basic_mpp),
@@ -331,7 +346,32 @@ impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
             var_onion_optin: extract_feature_status(self.features.activated.var_onion_optin),
         };
 
-        DecodeInvoiceResult {
+        let route_hints = self
+            .routing_info
+            .into_iter()
+            .map(|route_info: Vec<RoutingInfo>| {
+                let info = RoutingHint {
+                    hop_hints: route_info
+                        .into_iter()
+                        .map(|hop_int: RoutingInfo| {
+                            let hop = HopHint {
+                                node_id: hop_int.node_id.to_string(),
+                                chan_id: hop_int.short_channel_id.parse()?,
+                                fee_base_msat: hop_int.fee_base,
+                                fee_proportional_millionths: hop_int.fee_proportional_millionths,
+                                cltv_expiry_delta: hop_int.cltv_expiry_delta as u32,
+                            };
+
+                            Ok::<HopHint, Error>(hop)
+                        })
+                        .try_collect()?,
+                };
+
+                Ok::<RoutingHint, Error>(info)
+            })
+            .try_collect()?;
+
+        let invoice = DecodeInvoiceResult {
             creation_date: self.timestamp,
             amount: Some(utils::msat_to_sat(self.amount)),
             amount_msat: Some(self.amount),
@@ -341,7 +381,9 @@ impl Into<DecodeInvoiceResult> for DecodeInvoiceResponse {
             expiry: self.expiry,
             min_final_cltv_expiry: self.min_final_cltv_expiry,
             features: Some(invoices_feature),
-            route_hints: Vec::new(),
-        }
+            route_hints,
+        };
+
+        Ok(invoice)
     }
 }

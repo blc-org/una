@@ -1,11 +1,9 @@
 #![allow(clippy::from_over_into)]
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-use crate::backends::eclair::rest::types;
 use crate::error::Error;
 use crate::{types::*, utils};
 
