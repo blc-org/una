@@ -61,7 +61,11 @@ export interface InvoiceFeatures {
 }
 
 export interface RoutingHint {
-  chan_id: number;
+  hop_hints: HopHint[];
+}
+
+export interface HopHint {
+  chan_id: string;
   cltv_expiry_delta: number;
   fee_base_msat: number;
   fee_proportional_millionths: number;

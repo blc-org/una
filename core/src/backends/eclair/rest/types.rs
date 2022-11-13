@@ -297,7 +297,7 @@ pub struct Features {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RoutingInfo {
+pub struct DecodeInvoiceRoutingInfo {
     pub node_id: String,
     pub short_channel_id: String,
     pub fee_base: u32,
@@ -312,14 +312,14 @@ pub struct DecodeInvoiceResponse {
     pub timestamp: i64,
     pub node_id: String,
     pub serialized: String,
-    pub description: String,
+    pub description: Option<String>,
     pub payment_hash: String,
-    pub payment_metadata: String,
+    pub payment_metadata: Option<String>,
     pub expiry: i32,
-    pub min_final_cltv_expiry: u32,
+    pub min_final_cltv_expiry: Option<u32>,
     pub amount: u64,
     pub features: Features,
-    pub routing_info: Vec<Vec<RoutingInfo>>,
+    pub routing_info: Vec<Vec<DecodeInvoiceRoutingInfo>>,
 }
 
 fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivationStatus {
@@ -346,20 +346,20 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
             var_onion_optin: extract_feature_status(self.features.activated.var_onion_optin),
         };
 
-        let route_hints = self
+        let route_hints: Vec<RoutingHint> = self
             .routing_info
             .into_iter()
-            .map(|route_info: Vec<RoutingInfo>| {
+            .map(|route_info| {
                 let info = RoutingHint {
                     hop_hints: route_info
                         .into_iter()
-                        .map(|hop_int: RoutingInfo| {
+                        .map(|hop_hint| {
                             let hop = HopHint {
-                                node_id: hop_int.node_id.to_string(),
-                                chan_id: hop_int.short_channel_id.parse()?,
-                                fee_base_msat: hop_int.fee_base,
-                                fee_proportional_millionths: hop_int.fee_proportional_millionths,
-                                cltv_expiry_delta: hop_int.cltv_expiry_delta as u32,
+                                node_id: hop_hint.node_id.to_string(),
+                                chan_id: hop_hint.short_channel_id,
+                                fee_base_msat: hop_hint.fee_base,
+                                fee_proportional_millionths: hop_hint.fee_proportional_millionths,
+                                cltv_expiry_delta: hop_hint.cltv_expiry_delta as u32,
                             };
 
                             Ok::<HopHint, Error>(hop)
@@ -379,7 +379,7 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
             memo: self.description,
             payment_hash: self.payment_hash,
             expiry: self.expiry,
-            min_final_cltv_expiry: self.min_final_cltv_expiry,
+            min_final_cltv_expiry: 18,
             features: Some(invoices_feature),
             route_hints,
         };

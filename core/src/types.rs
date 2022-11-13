@@ -158,7 +158,7 @@ pub struct RoutingHint {
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct HopHint {
     pub node_id: String,
-    pub chan_id: u64,
+    pub chan_id: String,
     pub fee_base_msat: u32,
     pub fee_proportional_millionths: u32,
     pub cltv_expiry_delta: u32,
@@ -170,7 +170,7 @@ pub struct DecodeInvoiceResult {
     pub amount: Option<u64>,
     pub amount_msat: Option<u64>,
     pub destination: Option<String>,
-    pub memo: String,
+    pub memo: Option<String>,
     pub payment_hash: String,
     pub expiry: i32,
     pub min_final_cltv_expiry: u32,

@@ -262,7 +262,7 @@ pub struct DecodeInvoiceResponse {
     pub num_satoshis: String,
     pub timestamp: String,
     pub expiry: String,
-    pub description: String,
+    pub description: Option<String>,
     pub description_hash: String,
     pub fallback_addr: String,
     pub cltv_expiry: String,
@@ -280,7 +280,7 @@ pub struct DecodeInvoiceFeature {
 }
 #[derive(Debug, Deserialize)]
 pub struct DecodeInvoiceRoutingHint {
-    pub hop_hints: Vec<HopHint>,
+    pub hop_hints: Vec<DecodeInvoiceHopHint>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -333,7 +333,7 @@ impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
                         .into_iter()
                         .map(|hop_hint| HopHint {
                             node_id: hop_hint.node_id,
-                            chan_id: hop_hint.chan_id,
+                            chan_id: hop_hint.chan_id.to_string(),
                             fee_base_msat: hop_hint.fee_base_msat,
                             fee_proportional_millionths: hop_hint.fee_proportional_millionths,
                             cltv_expiry_delta: hop_hint.cltv_expiry_delta,
