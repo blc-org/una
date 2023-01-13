@@ -151,12 +151,12 @@ impl TryInto<DecodeInvoiceResult> for String {
                     hop_hints: route_hint
                         .0
                         .into_iter()
-                        .map(|hop_int| HopHint {
-                            node_id: hop_int.src_node_id.to_string(),
-                            chan_id: hop_int.short_channel_id.to_string(),
-                            fee_base_msat: hop_int.fees.base_msat,
-                            fee_proportional_millionths: hop_int.fees.proportional_millionths,
-                            cltv_expiry_delta: hop_int.cltv_expiry_delta as u32,
+                        .map(|hop_hint| HopHint {
+                            node_id: hop_hint.src_node_id.to_string(),
+                            chan_id: hop_hint.short_channel_id.to_string(),
+                            fee_base_msat: hop_hint.fees.base_msat,
+                            fee_proportional_millionths: hop_hint.fees.proportional_millionths,
+                            cltv_expiry_delta: hop_hint.cltv_expiry_delta as u32,
                         })
                         .collect(),
                 })
