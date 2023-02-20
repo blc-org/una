@@ -1,4 +1,4 @@
-export interface ILndInvoice {
+export interface ILndInvoice extends ILndResponse {
   memo: string
   r_preimage: string
   r_hash: string
@@ -24,6 +24,12 @@ export interface ILndInvoice {
   features: { [key: string]: IFeature }
   is_keysend: boolean
   payment_addr: string
+}
+
+interface ILndResponse {
+  code: number
+  message: string
+  details: any[]
 }
 
 interface IFeature {

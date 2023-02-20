@@ -38,6 +38,10 @@ export default class LndRest extends Backend {
     const options = this.getRequestOptions(EHttpVerb.GET, '/v1/invoice/' + hash)
     const response = await this.request(options) as ILndInvoice
 
+    // With certain LND configurations, invoices are purged immediately on expiry
+    // https://github.com/lightningnetwork/lnd/issues/6299
+    if (response.code) return Promise.reject(new Error(response.message)) 
+
     return this.toInvoice(response)
   }
 
