@@ -24,11 +24,19 @@ export const watchInvoices = (backend: IBackend, intervalMs: number | null = nul
           if (invoice.status !== invoiceToWatch.status) {
             backend.invoiceEmitter.emit('invoice-updated', invoice)
             if (invoice.status !== EInvoiceStatus.Pending) {
-              const indexToRemove = backend.invoicesToWatch.findIndex(i => i.paymentHash !== invoiceToWatch.paymentHash)
+              const indexToRemove = backend.invoicesToWatch.findIndex(i => i.paymentHash === invoiceToWatch.paymentHash)
               backend.invoicesToWatch.splice(indexToRemove)
             }
           }
-        }).catch(err => console.error('Unable to fetch invoice', err))
+        }).catch(err => {
+          const indexToRemove = backend.invoicesToWatch.findIndex((i) => i.paymentHash === invoiceToWatch.paymentHash);
+          const cancelledInvoice = backend.invoicesToWatch[indexToRemove]
+          if (cancelledInvoice) {
+            cancelledInvoice.status = EInvoiceStatus.Cancelled
+            backend.invoiceEmitter.emit("invoice-updated", cancelledInvoice);
+            backend.invoicesToWatch.splice(indexToRemove);
+          }
+        })
       }
     }).catch(err => console.error('Unable to fetch pending invoices', err))
   }, intervalMs ?? 5000)
