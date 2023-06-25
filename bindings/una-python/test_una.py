@@ -4,6 +4,7 @@ import una
 import pytest
 pytest_plugins = ('pytest_asyncio',)
 
+
 @pytest.fixture
 def lnd_rest():
     config_lnd_rest = dict({
@@ -14,6 +15,7 @@ def lnd_rest():
 
     lnd_rest = una.Node("LndRest", config_lnd_rest)
     yield lnd_rest
+
 
 @pytest.fixture
 def cln_grpc():
@@ -27,10 +29,12 @@ def cln_grpc():
     cln_grpc = una.Node("ClnGrpc", config_cln_grpc)
     yield cln_grpc
 
+
 @pytest.mark.asyncio
 async def test_get_info(lnd_rest, cln_grpc):
     await lnd_rest.get_info()
     await cln_grpc.get_info()
+
 
 @pytest.mark.asyncio
 async def test_create_invoice(lnd_rest, cln_grpc):
@@ -42,6 +46,7 @@ async def test_create_invoice(lnd_rest, cln_grpc):
     await lnd_rest.create_invoice(invoice)
     await cln_grpc.create_invoice(invoice)
 
+
 @pytest.mark.asyncio
 async def test_create_invoice_without_amount(lnd_rest, cln_grpc):
     invoice = dict({
@@ -51,4 +56,14 @@ async def test_create_invoice_without_amount(lnd_rest, cln_grpc):
     res = await lnd_rest.create_invoice(invoice)
     print(res)
     res = await cln_grpc.create_invoice(invoice)
+    print(res)
+
+
+@pytest.mark.asyncio
+async def test_decode_invoice(lnd_rest, cln_grpc):
+    invoice = "lnbcrt2400u1p3n9jzupp5ydnyhjmsk3lxg93l9myr9qvxvff0hphvf44j59t4y9kmuq43r5hqdq62pshjmt9de6zqar0yp3kzun0dssp56fskehdusx96zn9mepzcxlpcwhyl0e2a2hl5zyqnsx29grp8g9yqmqz9gxqrrsscqp79q2sqqqqqysgq7rwfghezmteyaunm63efau5f2dufmlz4d5j8mkx4yxfa3dhfsnzreaykvc2dh4fqr6zrw40cxffy8r7rz68425f0e5pfv6nqj5s20mgqr94r57"
+
+    res = await lnd_rest.decode_invoice(invoice)
+    print(res)
+    res = await cln_grpc.decode_invoice(invoice)
     print(res)

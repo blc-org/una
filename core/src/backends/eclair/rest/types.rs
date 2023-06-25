@@ -1,5 +1,7 @@
 #![allow(clippy::from_over_into)]
 
+use std::convert::TryInto;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -266,5 +268,122 @@ impl TryInto<PayInvoiceResult> for PayInvoiceResponse {
         };
 
         Ok(result)
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct DecodeInvoiceRequest {
+    invoice: String,
+}
+
+impl From<String> for DecodeInvoiceRequest {
+    fn from(invoice: String) -> DecodeInvoiceRequest {
+        return DecodeInvoiceRequest { invoice };
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Activated {
+    pub var_onion_optin: Option<String>,
+    pub payment_secret: Option<String>,
+    pub basic_mpp: Option<String>,
+    pub option_payment_metadata: Option<String>,
+}
+#[derive(Debug, Deserialize)]
+pub struct Features {
+    pub activated: Activated,
+    pub unknown: Vec<Value>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecodeInvoiceRoutingInfo {
+    pub node_id: String,
+    pub short_channel_id: String,
+    pub fee_base: u32,
+    pub fee_proportional_millionths: u32,
+    pub cltv_expiry_delta: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecodeInvoiceResponse {
+    pub prefix: String,
+    pub timestamp: i64,
+    pub node_id: String,
+    pub serialized: String,
+    pub description: Option<String>,
+    pub payment_hash: String,
+    pub payment_metadata: Option<String>,
+    pub expiry: i32,
+    pub min_final_cltv_expiry: Option<u32>,
+    pub amount: u64,
+    pub features: Features,
+    pub routing_info: Vec<Vec<DecodeInvoiceRoutingInfo>>,
+}
+
+fn extract_feature_status(feature_status_str: Option<String>) -> FeatureActivationStatus {
+    match feature_status_str {
+        None => FeatureActivationStatus::Unknown,
+        Some(f) => match f.as_str() {
+            "optional" => FeatureActivationStatus::Optional,
+            "mandatory" => FeatureActivationStatus::Mandatory,
+            _ => FeatureActivationStatus::Unknown,
+        },
+    }
+}
+
+impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Error> {
+        let invoices_feature = InvoiceFeatures {
+            payment_secret: extract_feature_status(self.features.activated.payment_secret),
+            basic_mpp: extract_feature_status(self.features.activated.basic_mpp),
+            option_payment_metadata: extract_feature_status(
+                self.features.activated.option_payment_metadata,
+            ),
+            var_onion_optin: extract_feature_status(self.features.activated.var_onion_optin),
+        };
+
+        let route_hints: Vec<RoutingHint> = self
+            .routing_info
+            .into_iter()
+            .map(|route_info| {
+                let info = RoutingHint {
+                    hop_hints: route_info
+                        .into_iter()
+                        .map(|hop_hint| {
+                            let hop = HopHint {
+                                node_id: hop_hint.node_id.to_string(),
+                                chan_id: hop_hint.short_channel_id,
+                                fee_base_msat: hop_hint.fee_base,
+                                fee_proportional_millionths: hop_hint.fee_proportional_millionths,
+                                cltv_expiry_delta: hop_hint.cltv_expiry_delta as u32,
+                            };
+
+                            Ok::<HopHint, Error>(hop)
+                        })
+                        .try_collect()?,
+                };
+
+                Ok::<RoutingHint, Error>(info)
+            })
+            .try_collect()?;
+
+        let invoice = DecodeInvoiceResult {
+            creation_date: self.timestamp,
+            amount: Some(utils::msat_to_sat(self.amount)),
+            amount_msat: Some(self.amount),
+            destination: Some(self.node_id),
+            memo: self.description,
+            payment_hash: self.payment_hash,
+            expiry: self.expiry,
+            min_final_cltv_expiry: 18,
+            features: Some(invoices_feature),
+            route_hints,
+        };
+
+        Ok(invoice)
     }
 }

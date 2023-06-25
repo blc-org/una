@@ -23,7 +23,6 @@ impl TryFrom<NodeConfig> for LndRestConfig {
         let tls_certificate = config
             .tls_certificate
             .ok_or_else(|| ConfigError::MissingField("tls_certificate".to_string()))?;
-
         let config = LndRestConfig {
             url,
             macaroon,

@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 use crate::error::Error;
 use crate::{types::*, utils};
@@ -248,6 +249,98 @@ impl TryInto<PayInvoiceResult> for SendPaymentSyncResponse {
                     .total_fees_msat
                     .parse()?,
             ),
+        };
+
+        Ok(result)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceResponse {
+    pub destination: String,
+    pub payment_hash: String,
+    pub num_satoshis: String,
+    pub timestamp: String,
+    pub expiry: String,
+    pub description: Option<String>,
+    pub description_hash: String,
+    pub fallback_addr: String,
+    pub cltv_expiry: String,
+    pub payment_addr: String,
+    pub num_msat: String,
+    pub features: HashMap<u16, DecodeInvoiceFeature>,
+    pub route_hints: Vec<DecodeInvoiceRoutingHint>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceFeature {
+    pub name: String,
+    pub is_required: bool,
+    pub is_known: bool,
+}
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceRoutingHint {
+    pub hop_hints: Vec<DecodeInvoiceHopHint>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DecodeInvoiceHopHint {
+    pub node_id: String,
+    pub chan_id: u64,
+    pub fee_base_msat: u32,
+    pub fee_proportional_millionths: u32,
+    pub cltv_expiry_delta: u32,
+}
+
+fn extract_feature_status(feature: Option<&DecodeInvoiceFeature>) -> FeatureActivationStatus {
+    match feature {
+        None => FeatureActivationStatus::Unknown,
+        Some(f) => match (f.is_known, f.is_required) {
+            (true, true) => FeatureActivationStatus::Mandatory,
+            (true, false) => FeatureActivationStatus::Optional,
+            _ => FeatureActivationStatus::Unknown,
+        },
+    }
+}
+
+impl TryInto<DecodeInvoiceResult> for DecodeInvoiceResponse {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Self::Error> {
+        let invoice_features = InvoiceFeatures {
+            payment_secret: extract_feature_status(self.features.get(&14)),
+            basic_mpp: extract_feature_status(self.features.get(&17)),
+            option_payment_metadata: FeatureActivationStatus::Unknown,
+            var_onion_optin: extract_feature_status(self.features.get(&9)),
+        };
+
+        let result = DecodeInvoiceResult {
+            creation_date: self.timestamp.parse()?,
+            amount: Some(self.num_satoshis.parse()?),
+            amount_msat: Some(self.num_msat.parse()?),
+            destination: Some(self.destination),
+            memo: self.description,
+            payment_hash: self.payment_hash,
+            expiry: self.expiry.parse()?,
+            min_final_cltv_expiry: self.cltv_expiry.parse()?,
+            features: Some(invoice_features),
+            route_hints: self
+                .route_hints
+                .into_iter()
+                .map(|route_hint| RoutingHint {
+                    hop_hints: route_hint
+                        .hop_hints
+                        .into_iter()
+                        .map(|hop_hint| HopHint {
+                            node_id: hop_hint.node_id,
+                            chan_id: hop_hint.chan_id.to_string(),
+                            fee_base_msat: hop_hint.fee_base_msat,
+                            fee_proportional_millionths: hop_hint.fee_proportional_millionths,
+                            cltv_expiry_delta: hop_hint.cltv_expiry_delta,
+                        })
+                        .collect(),
+                })
+                .collect(),
         };
 
         Ok(result)

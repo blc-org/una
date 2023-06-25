@@ -3,7 +3,8 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 use crate::error::Error;
 use crate::node::NodeMethods;
 use crate::types::{
-    CreateInvoiceParams, CreateInvoiceResult, NodeInfo, PayInvoiceParams, PayInvoiceResult,
+    CreateInvoiceParams, CreateInvoiceResult, DecodeInvoiceResult, NodeInfo, PayInvoiceParams,
+    PayInvoiceResult,
 };
 
 use super::config::ClnGrpcConfig;
@@ -75,5 +76,9 @@ impl NodeMethods for ClnGrpc {
         let response = client.pay(request).await?.into_inner();
 
         Ok(response.into())
+    }
+
+    async fn decode_invoice(&self, invoice_str: String) -> Result<DecodeInvoiceResult, Error> {
+        Ok(invoice_str.try_into()?)
     }
 }

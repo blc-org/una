@@ -1,7 +1,10 @@
 #![allow(clippy::from_over_into)]
 
-use crate::{types::*, utils};
+use std::{convert::TryInto, time::UNIX_EPOCH};
+
+use crate::{error::Error, types::*, utils};
 use cuid;
+use lightning_invoice;
 
 include!(concat!(env!("PROTOBUFS_DIR"), "/cln.rs"));
 
@@ -103,5 +106,63 @@ impl Into<PayInvoiceResult> for PayResponse {
             payment_hash: hex::encode(self.payment_hash),
             fees_msat,
         }
+    }
+}
+
+impl TryInto<DecodeInvoiceResult> for String {
+    type Error = Error;
+
+    fn try_into(self) -> Result<DecodeInvoiceResult, Error> {
+        // DecodeInvoice gRPC command is not implemented yet on CLN, so we need to use an external parser instead
+        let parsed_invoice =
+            str::parse::<lightning_invoice::Invoice>(self.as_ref()).map_err(|_| {
+                Error::ConversionError(String::from(
+                    "provided invoice is not a valid bolt11 invoice",
+                ))
+            })?;
+
+        let memo = match parsed_invoice.description() {
+            lightning_invoice::InvoiceDescription::Direct(direct) => Ok(Some(direct.to_string())),
+            lightning_invoice::InvoiceDescription::Hash(_hash) => Err(Error::NotImplemented(
+                String::from("Hash transcription is not supported yet"),
+            )),
+        }?;
+
+        let invoice = DecodeInvoiceResult {
+            creation_date: parsed_invoice
+                .timestamp()
+                .duration_since(UNIX_EPOCH)
+                .map_err(|_| {
+                    Error::ConversionError(String::from("could not convert creation_date"))
+                })?
+                .as_millis() as i64,
+            amount: utils::get_amount_sat(None, parsed_invoice.amount_milli_satoshis()),
+            amount_msat: parsed_invoice.amount_milli_satoshis(),
+            destination: None,
+            memo,
+            payment_hash: parsed_invoice.payment_hash().to_string(),
+            expiry: parsed_invoice.expiry_time().as_millis() as i32,
+            min_final_cltv_expiry: parsed_invoice.min_final_cltv_expiry() as u32,
+            features: None,
+            route_hints: parsed_invoice
+                .route_hints()
+                .into_iter()
+                .map(|route_hint| RoutingHint {
+                    hop_hints: route_hint
+                        .0
+                        .into_iter()
+                        .map(|hop_hint| HopHint {
+                            node_id: hop_hint.src_node_id.to_string(),
+                            chan_id: hop_hint.short_channel_id.to_string(),
+                            fee_base_msat: hop_hint.fees.base_msat,
+                            fee_proportional_millionths: hop_hint.fees.proportional_millionths,
+                            cltv_expiry_delta: hop_hint.cltv_expiry_delta as u32,
+                        })
+                        .collect(),
+                })
+                .collect(),
+        };
+
+        Ok(invoice)
     }
 }
